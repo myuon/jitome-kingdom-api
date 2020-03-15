@@ -1,7 +1,7 @@
 #[derive(Debug)]
 pub struct ServiceError {
-    error: failure::Error,
-    status_code: http::StatusCode,
+    pub error: failure::Error,
+    pub status_code: http::StatusCode,
 }
 
 impl ServiceError {

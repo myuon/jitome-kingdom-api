@@ -9,6 +9,23 @@ use std::sync::Arc;
 pub type Request = hyper::Request<hyper::Body>;
 pub type Response = hyper::Response<hyper::Body>;
 
+pub fn response_from<D: serde::Serialize>(result: Result<D, ServiceError>) -> Response {
+    let (s, b) = match result {
+        Ok(d) => (
+            hyper::StatusCode::OK,
+            hyper::Body::from(serde_json::to_string(&d).unwrap()),
+        ),
+        Err(err) => (err.status_code, hyper::Body::from(err.error.to_string())),
+    };
+
+    hyper::Response::builder()
+        .status(s)
+        .header(hyper::header::ACCESS_CONTROL_ALLOW_ORIGIN, "*")
+        .header(hyper::header::CONTENT_TYPE, "application/json")
+        .body(b)
+        .unwrap()
+}
+
 pub struct Params(Vec<(String, String)>);
 
 impl Params {
@@ -43,9 +60,8 @@ mod tests {
     }
 }
 
-type FutureResult<O, E> = Pin<Box<dyn Future<Output = Result<O, E>> + Send>>;
-type Handler<D> =
-    Arc<dyn Fn(Request, Params, Arc<D>) -> FutureResult<Response, ServiceError> + Sync + Send>;
+type FutureResult<O> = Pin<Box<dyn Future<Output = O> + Send>>;
+type Handler<D> = Arc<dyn Fn(Request, Params, Arc<D>) -> FutureResult<Response> + Sync + Send>;
 
 pub struct App<D> {
     paths: PathTree<Handler<D>>,
@@ -65,12 +81,8 @@ fn internal_path(method: &Method, path: &str) -> String {
     format!("/{}/{}", method, path)
 }
 
-async fn cors_handler<D>(
-    _req: Request,
-    _params: Params,
-    _data: Arc<D>,
-) -> Result<Response, ServiceError> {
-    Ok(hyper::Response::builder()
+async fn cors_handler<D>(_req: Request, _params: Params, _data: Arc<D>) -> Response {
+    hyper::Response::builder()
         .header(hyper::header::ACCESS_CONTROL_ALLOW_ORIGIN, "*")
         // Safari対策に全部明記する
         .header(
@@ -82,7 +94,7 @@ async fn cors_handler<D>(
             "POST,PUT,DELETE",
         )
         .body(Body::default())
-        .unwrap())
+        .unwrap()
 }
 
 impl<D: Sync + Send + 'static> App<D> {
@@ -96,7 +108,7 @@ impl<D: Sync + Send + 'static> App<D> {
     pub fn route<F, T>(mut self, path: &str, method: Method, f: F) -> Self
     where
         F: Fn(Request, Params, Arc<D>) -> T + Clone + Sync + Send + 'static,
-        T: Future<Output = Result<Response, ServiceError>> + Send + 'static,
+        T: Future<Output = Response> + Send + 'static,
     {
         let ipath = internal_path(&method, path);
         if self.paths.find(&ipath).is_some() {
@@ -168,10 +180,7 @@ impl<D: Sync + Send + 'static> HttpServer<D> {
                                 )
                                 .await;
 
-                                Ok(match result {
-                                    Ok(resp) => resp,
-                                    Err(err) => err.to_http_response(),
-                                })
+                                Ok(result)
                             }
                         }
                     }
