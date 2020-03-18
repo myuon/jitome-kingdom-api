@@ -11,4 +11,36 @@ impl ServiceError {
             .body(hyper::Body::from(self.error.to_string()))
             .unwrap()
     }
+
+    pub fn bad_request(err: failure::Error) -> Self {
+        ServiceError {
+            error: err,
+            status_code: http::StatusCode::BAD_REQUEST,
+        }
+    }
+
+    pub fn not_found(err: failure::Error) -> Self {
+        ServiceError {
+            error: err,
+            status_code: http::StatusCode::NOT_FOUND,
+        }
+    }
+
+    pub fn internal_server_error(err: failure::Error) -> Self {
+        ServiceError {
+            error: err,
+            status_code: http::StatusCode::INTERNAL_SERVER_ERROR,
+        }
+    }
+}
+
+impl From<debil_mysql::Error> for ServiceError {
+    fn from(err: debil_mysql::Error) -> Self {
+        use debil_mysql::Error::*;
+
+        match err {
+            NotFoundError => ServiceError::not_found(failure::err_msg("record not found")),
+            MySQLError(err) => ServiceError::internal_server_error(From::from(err)),
+        }
+    }
 }

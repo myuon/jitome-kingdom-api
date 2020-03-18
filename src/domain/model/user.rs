@@ -2,11 +2,11 @@ use crate::domain::model::UserId;
 use crate::wrapper::unixtime::UnixTime;
 
 pub struct User {
-    id: UserId,
-    screen_name: Option<String>,
-    display_name: String,
-    point: u64, // みょんポイント
-    created_at: UnixTime,
+    pub id: UserId,
+    pub screen_name: Option<String>,
+    pub display_name: String,
+    pub point: u64, // みょんポイント
+    pub created_at: UnixTime,
 }
 
 impl User {
