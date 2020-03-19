@@ -8,7 +8,7 @@ use debil::*;
 use debil_mysql::*;
 use std::sync::Arc;
 
-#[derive(Table)]
+#[derive(Table, Clone)]
 #[sql(table_name = "user", sql_type = "MySQLValue", primary_key = "id")]
 pub struct UserRecord {
     id: String,
@@ -52,18 +52,30 @@ impl UserRepository {
 
 #[async_trait]
 impl IUserRepository for UserRepository {
-    async fn find_by_id(&self, user_id: UserId) -> Result<(), ServiceError> {
-        unimplemented!()
+    async fn find_by_id(&self, user_id: UserId) -> Result<User, ServiceError> {
+        let mut conn = self.pool.get_conn().await?;
+        let user = conn
+            .first_with::<UserRecord>(QueryBuilder::new().filter(format!(
+                "{}.id = '{}'",
+                table_name::<UserRecord>(),
+                user_id.0
+            )))
+            .await?;
+
+        Ok(user.into_model())
     }
 
     async fn create(&self, user: User) -> Result<(), ServiceError> {
         let mut conn = self.pool.get_conn().await?;
-        conn.save(UserRecord::from_model(user)).await?;
+        conn.create(UserRecord::from_model(user)).await?;
 
         Ok(())
     }
 
     async fn save(&self, user: User) -> Result<(), ServiceError> {
-        unimplemented!()
+        let mut conn = self.pool.get_conn().await?;
+        conn.save(UserRecord::from_model(user)).await?;
+
+        Ok(())
     }
 }
