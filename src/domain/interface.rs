@@ -8,3 +8,7 @@ pub trait IUserRepository {
     async fn create(&self, user: User) -> Result<(), ServiceError>;
     async fn save(&self, user: User) -> Result<(), ServiceError>;
 }
+
+pub trait IJWTHandler<Payload> {
+    fn verify(&self, jwt: &str) -> Result<Payload, ServiceError>;
+}

@@ -5,7 +5,7 @@ pub struct ServiceError {
 }
 
 impl ServiceError {
-    pub fn to_http_response(self) -> http::Response<hyper::Body> {
+    pub fn into_http_response(self) -> http::Response<hyper::Body> {
         http::Response::builder()
             .status(self.status_code)
             .body(hyper::Body::from(self.error.to_string()))
@@ -16,6 +16,13 @@ impl ServiceError {
         ServiceError {
             error: err,
             status_code: http::StatusCode::BAD_REQUEST,
+        }
+    }
+
+    pub fn unauthorized(err: failure::Error) -> Self {
+        ServiceError {
+            error: err,
+            status_code: http::StatusCode::UNAUTHORIZED,
         }
     }
 
@@ -31,6 +38,12 @@ impl ServiceError {
             error: err,
             status_code: http::StatusCode::INTERNAL_SERVER_ERROR,
         }
+    }
+}
+
+impl From<failure::Error> for ServiceError {
+    fn from(err: failure::Error) -> Self {
+        ServiceError::unauthorized(err)
     }
 }
 
