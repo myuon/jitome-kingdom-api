@@ -264,9 +264,9 @@ dependencies = [
 
 [[package]]
 name = "debil"
-version = "0.1.0"
+version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c4bcfde2f02da35376afc5b1d38eac3fc0735b8e5cdd054348b44216f044b768"
+checksum = "90919e28c63822ee6acdb92b406f506fd958423a7769dc738b59042cc0d460e6"
 dependencies = [
  "async-trait",
  "debil-derive",
@@ -285,8 +285,9 @@ dependencies = [
 
 [[package]]
 name = "debil-mysql"
-version = "0.1.0"
-source = "git+https://github.com/myuon/debil-mysql.git#19bfb580b23f9e83497e109cec5286f0765e6e34"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a5369c9e4f580a2809b35a78d15efeb916d70b7fcbfbac64a893d5da01a62ee6"
 dependencies = [
  "async-trait",
  "debil",
@@ -828,9 +829,9 @@ dependencies = [
 
 [[package]]
 name = "mysql_async"
-version = "0.21.1"
+version = "0.22.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ba3a5e3bfbb9aa14eee05ff8b028d71c1a7c1df19a1ac14daa538e770c6ddcb8"
+checksum = "c5191aded6548248f6bc57f7635335d3c704c49a6ef67a8f6d941277ce0e77f8"
 dependencies = [
  "bytes",
  "crossbeam",

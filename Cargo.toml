@@ -19,6 +19,6 @@ dotenv = "0.15.0"
 chrono = "0.4.11"
 uuid = { version = "0.8.1", features = ["v4"] }
 async-trait = "0.1.24"
-debil = "0.1.0"
-debil-mysql = { git = "https://github.com/myuon/debil-mysql.git" }
-mysql_async = "0.21.1"
+debil = "0.1.1"
+debil-mysql = "0.1.1"
+mysql_async = "0.22.1"
