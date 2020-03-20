@@ -8,17 +8,17 @@ pub struct Config {
 }
 
 pub struct Infras {
-    jwt_handler: Arc<JWTHandler>,
-    user_repository: Arc<UserRepository>,
+    pub jwt_handler: Arc<JWTHandler>,
+    pub user_repository: Arc<UserRepository>,
 }
 
 pub struct Services {
-    user_service: UserService,
+    pub user_service: UserService,
 }
 
 pub struct App {
-    infras: Infras,
-    services: Services,
+    pub infras: Infras,
+    pub services: Services,
 }
 
 pub fn new(config: Config) -> App {

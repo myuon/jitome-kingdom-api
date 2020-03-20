@@ -1,14 +1,14 @@
 use crate::domain::interface::IJWTHandler;
+use crate::domain::model::AuthUser;
 use crate::wrapper::error::ServiceError;
 use biscuit::errors::Error;
-use futures::FutureExt;
 use serde::de::DeserializeOwned;
 use serde::Serialize;
 use std::sync::Arc;
 
 impl From<biscuit::errors::Error> for ServiceError {
     fn from(err: Error) -> Self {
-        ServiceError::internal_server_error(failure::Error::from_boxed_compat(Box::new(err)))
+        ServiceError::unauthorized(failure::Error::from_boxed_compat(Box::new(err)))
     }
 }
 
@@ -38,6 +38,17 @@ impl JWTHandler {
             ),
             _ => unimplemented!(),
         }
+    }
+
+    pub fn authorize(&self, auth_token: &str) -> Result<AuthUser, ServiceError> {
+        let token = auth_token.split("Bearer ").collect::<Vec<&str>>();
+        if token.len() != 2 {
+            return Err(ServiceError::unauthorized(failure::err_msg(
+                "access denied",
+            )));
+        }
+
+        self.verify(token[1])
     }
 }
 
