@@ -1,9 +1,7 @@
-use crate::domain::interface::IJWTHandler;
-use crate::domain::model::AuthUser;
+use crate::domain::model::{AuthUser, UserId};
 use crate::wrapper::error::ServiceError;
 use biscuit::errors::Error;
-use serde::de::DeserializeOwned;
-use serde::Serialize;
+use serde::*;
 use std::sync::Arc;
 
 impl From<biscuit::errors::Error> for ServiceError {
@@ -11,6 +9,10 @@ impl From<biscuit::errors::Error> for ServiceError {
         ServiceError::unauthorized(failure::Error::from_boxed_compat(Box::new(err)))
     }
 }
+
+// for parsing payload in jwt
+#[derive(Serialize, Deserialize)]
+struct CustomPayload {}
 
 pub struct JWTHandler {
     public_key: Arc<biscuit::jwk::JWKSet<biscuit::Empty>>,
@@ -50,21 +52,28 @@ impl JWTHandler {
 
         self.verify(token[1])
     }
-}
 
-impl<Payload: Serialize + DeserializeOwned + Clone> IJWTHandler<Payload> for JWTHandler {
-    fn verify(&self, jwt: &str) -> Result<Payload, ServiceError> {
-        let jwt = biscuit::JWT::<Payload, biscuit::Empty>::new_encoded(jwt);
+    fn verify(&self, jwt: &str) -> Result<AuthUser, ServiceError> {
+        let jwt = biscuit::JWT::<CustomPayload, biscuit::Empty>::new_encoded(jwt);
         let kid = jwt
             .unverified_header()?
             .registered
             .key_id
             .ok_or(failure::err_msg("None for key_id"))?;
 
-        let (secret, alg) = self.get_key_from_jwk(&kid);
-        let jwt = jwt.into_decoded(&secret, alg)?;
+        let jwt = jwt.decode_with_jwks(self.public_key.as_ref())?;
         jwt.validate(Default::default())?;
 
-        Ok(jwt.payload()?.private.clone())
+        let payload = jwt.payload()?.clone();
+        Ok(AuthUser {
+            user_id: UserId(
+                payload
+                    .registered
+                    .subject
+                    .as_ref()
+                    .ok_or(ServiceError::bad_request(failure::err_msg("no subject")))?
+                    .to_string(),
+            ),
+        })
     }
 }

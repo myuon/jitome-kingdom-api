@@ -19,6 +19,7 @@ impl UserService {
         UserService { user_repo }
     }
 
+    /*
     pub async fn create(
         &self,
         auth: Authorization,
@@ -31,11 +32,12 @@ impl UserService {
 
         Ok(())
     }
+    */
 
     pub async fn get_me(&self, auth: Authorization) -> Result<serde_json::Value, ServiceError> {
         let user = auth.require_auth()?;
 
-        let message = format!("You're {}", user.sub);
+        let message = format!("You're {}", user.user_id.0);
         let result = serde_json::json!({ "data": message });
 
         Ok(result)

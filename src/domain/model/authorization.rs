@@ -1,9 +1,10 @@
+use crate::domain::model::UserId;
 use crate::wrapper::error::ServiceError;
 use serde::*;
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct AuthUser {
-    pub sub: String,
+    pub user_id: UserId,
 }
 
 pub struct Authorization {

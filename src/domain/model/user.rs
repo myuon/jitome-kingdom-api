@@ -10,9 +10,9 @@ pub struct User {
 }
 
 impl User {
-    pub fn new(screen_name: Option<String>, display_name: String) -> Self {
+    pub fn new(id: UserId, screen_name: Option<String>, display_name: String) -> Self {
         User {
-            id: UserId::new(),
+            id,
             screen_name,
             display_name,
             point: 0,
