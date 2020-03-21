@@ -25,3 +25,7 @@ mysql_async = "0.22.1"
 biscuit = "0.4.2"
 reqwest = { version = "0.10", features = ["json"] }
 rand = "0.7.3"
+dynomite = "0.7.0"
+rusoto_core = "0.41"
+rusoto_dynamodb = "0.41"
+maplit = "1.0.2"

@@ -27,6 +27,7 @@ async fn main() {
 
     let db_url = env::var("DB_URL").unwrap();
     let public_key = JWTHandler::load_from_jwk(&env::var("JWK_URL").unwrap()).await;
+    let gacha_event_repository_table_name = env::var("GACHA_EVENT_REPOSITORY_TABLE_NAME").unwrap();
 
     let mut conn = debil_mysql::DebilConn::from_conn(
         mysql_async::Conn::from_url(db_url.clone()).await.unwrap(),
@@ -34,8 +35,10 @@ async fn main() {
     migrate(conn).await.expect("Error in migration");
 
     let app = initializer::new(initializer::Config {
+        aws_region: rusoto_core::Region::ApNortheast1,
         db_url,
         public_key: Arc::new(public_key),
+        gacha_event_repository_table_name,
     });
 
     server::HttpServer::new()

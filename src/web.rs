@@ -33,6 +33,7 @@ pub fn handlers(app: App) -> server::App<WebContext> {
     server::App::new(WebContext { app })
         .route("/hello", http::Method::GET, api_hello)
         .route("/me", http::Method::GET, api_get_me)
+        .route("/gacha/daily", http::Method::POST, api_try_daily_gacha)
 }
 
 async fn api_hello(
@@ -51,4 +52,14 @@ async fn api_get_me(
     let auth = WebContext::get_authorization(req, ctx.clone());
 
     server::response_from(ctx.app.services.user_service.get_me(auth).await)
+}
+
+async fn api_try_daily_gacha(
+    req: server::Request,
+    ps: server::Params,
+    ctx: Arc<WebContext>,
+) -> server::Response {
+    let auth = WebContext::get_authorization(req, ctx.clone());
+
+    server::response_from(ctx.app.services.gacha_service.try_daily(auth).await)
 }

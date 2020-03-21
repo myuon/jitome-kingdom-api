@@ -1,4 +1,4 @@
-use crate::domain::model::UserId;
+use crate::domain::model::{GachaEventId, UserId};
 use crate::wrapper::unixtime::UnixTime;
 
 #[derive(Debug, Clone)]
@@ -28,6 +28,7 @@ impl GachaType {
 
 #[derive(Debug, Clone)]
 pub struct GachaEvent {
+    pub id: GachaEventId,
     pub user_id: UserId,
     pub gacha_type: GachaType,
     pub created_at: UnixTime,

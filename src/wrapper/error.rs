@@ -1,3 +1,5 @@
+use std::error::Error;
+
 #[derive(Debug)]
 pub struct ServiceError {
     pub error: failure::Error,
@@ -55,5 +57,17 @@ impl From<debil_mysql::Error> for ServiceError {
             NotFoundError => ServiceError::not_found(failure::err_msg("record not found")),
             MySQLError(err) => ServiceError::internal_server_error(From::from(err)),
         }
+    }
+}
+
+impl From<tokio::task::JoinError> for ServiceError {
+    fn from(err: tokio::task::JoinError) -> Self {
+        ServiceError::internal_server_error(From::from(err))
+    }
+}
+
+impl<E: Sync + Send + Error + 'static> From<rusoto_core::RusotoError<E>> for ServiceError {
+    fn from(err: rusoto_core::RusotoError<E>) -> Self {
+        ServiceError::internal_server_error(From::from(err))
     }
 }

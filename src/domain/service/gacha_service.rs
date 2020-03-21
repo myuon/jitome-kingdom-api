@@ -1,5 +1,5 @@
 use crate::domain::interface::{IGachaEventRepository, IUserRepository};
-use crate::domain::model::{Authorization, GachaEvent, GachaType};
+use crate::domain::model::{Authorization, GachaEvent, GachaEventId, GachaType};
 use crate::error::ServiceError;
 use crate::wrapper::rand_gen::RandomGen;
 use crate::wrapper::unixtime::UnixTime;
@@ -32,6 +32,7 @@ impl GachaService {
         self.user_repo.save(user.clone()).await?;
 
         let event = GachaEvent {
+            id: GachaEventId::new(),
             user_id: user.id,
             gacha_type: GachaType::Daily,
             created_at: UnixTime::now(),
