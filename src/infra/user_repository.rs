@@ -3,6 +3,7 @@ use crate::domain::model::{User, UserId};
 use crate::infra::ConnPool;
 use crate::wrapper::error::ServiceError;
 use crate::wrapper::unixtime::UnixTime;
+use crate::wrapper::url::Url;
 use async_trait::async_trait;
 use debil::*;
 use debil_mysql::*;
@@ -21,6 +22,8 @@ pub struct UserRecord {
     created_at: i64,
     #[sql(size = 100, unique = true)]
     subject: String,
+    #[sql(size = 256)]
+    picture_url: Option<String>,
 }
 
 impl UserRecord {
@@ -32,6 +35,7 @@ impl UserRecord {
             point: self.point,
             created_at: UnixTime(self.created_at),
             subject: self.subject,
+            picture_url: self.picture_url.map(Url),
         }
     }
 
@@ -43,6 +47,7 @@ impl UserRecord {
             point: user.point,
             created_at: user.created_at.0,
             subject: user.subject,
+            picture_url: user.picture_url.map(|u| u.0),
         }
     }
 }

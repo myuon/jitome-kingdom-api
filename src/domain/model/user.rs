@@ -1,5 +1,6 @@
 use crate::domain::model::UserId;
-use crate::wrapper::unixtime::UnixTime;
+use crate::unixtime::UnixTime;
+use crate::url::Url;
 use serde::*;
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -10,10 +11,16 @@ pub struct User {
     pub point: u64, // みょんポイント
     pub created_at: UnixTime,
     pub subject: String,
+    pub picture_url: Option<Url>,
 }
 
 impl User {
-    pub fn new(subject: String, screen_name: Option<String>, display_name: String) -> Self {
+    pub fn new(
+        subject: String,
+        screen_name: Option<String>,
+        display_name: String,
+        picture_url: Option<Url>,
+    ) -> Self {
         User {
             id: UserId::new(),
             screen_name,
@@ -21,6 +28,7 @@ impl User {
             point: 0,
             created_at: UnixTime::now(),
             subject,
+            picture_url,
         }
     }
 }

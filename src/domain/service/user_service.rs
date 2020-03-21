@@ -23,7 +23,7 @@ impl UserService {
         let user = match self.user_repo.find_by_subject(subject).await {
             Err(err) if err.status_code == http::StatusCode::NOT_FOUND => {
                 // 存在しなければ作成する
-                let user = User::new(subject.to_string(), None, "no name".to_string());
+                let user = User::new(subject.to_string(), None, "no name".to_string(), None);
                 self.user_repo.create(user.clone()).await?;
 
                 Ok(user)
