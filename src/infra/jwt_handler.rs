@@ -55,12 +55,6 @@ impl JWTHandler {
 
     fn verify(&self, jwt: &str) -> Result<AuthUser, ServiceError> {
         let jwt = biscuit::JWT::<CustomPayload, biscuit::Empty>::new_encoded(jwt);
-        let kid = jwt
-            .unverified_header()?
-            .registered
-            .key_id
-            .ok_or(failure::err_msg("None for key_id"))?;
-
         let jwt = jwt.decode_with_jwks(self.public_key.as_ref())?;
         jwt.validate(Default::default())?;
 
