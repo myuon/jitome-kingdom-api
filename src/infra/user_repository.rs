@@ -55,7 +55,7 @@ impl UserRepository {
 
 #[async_trait]
 impl IUserRepository for UserRepository {
-    async fn find_by_id(&self, user_id: UserId) -> Result<User, ServiceError> {
+    async fn find_by_id(&self, user_id: &UserId) -> Result<User, ServiceError> {
         let mut conn = self.pool.get_conn().await?;
         let user = conn
             .first_with::<UserRecord>(QueryBuilder::new().filter(format!(
