@@ -22,6 +22,7 @@ async fn migrate(mut conn: DebilConn) -> Result<(), debil_mysql::Error> {
 
 #[tokio::main]
 async fn main() {
+    env::set_var("RUST_LOG", "info");
     env_logger::init();
     dotenv::dotenv().expect("Failed to load dotenv");
 

@@ -1,5 +1,5 @@
 use crate::domain::interface::{IGachaEventRepository, IUserRepository};
-use crate::domain::model::{Authorization, GachaEvent, GachaEventId, GachaType};
+use crate::domain::model::{Authorization, GachaEvent, GachaEventId, GachaType, User, UserId};
 use crate::error::ServiceError;
 use crate::wrapper::rand_gen::RandomGen;
 use crate::wrapper::unixtime::UnixTime;
@@ -39,12 +39,14 @@ impl GachaService {
         };
 
         if let Err(err) = self.gacha_repo.create(event.clone()).await {
-            // 失敗したときはロールバックを試みる
-            warn!("Failed to create a new gacha event, {:?}", event);
+            warn!("Failed to create a new gacha event: {:?} {:?}", event, err);
+            error!("{:?}", err);
 
+            // 失敗したときはロールバックを試みる
             if let Err(err) = self.user_repo.save(user_cloned.clone()).await {
                 // ロールバックに失敗した場合は不整合が起こるのでログだけ吐いておく
                 error!("Failed to save the original user data: {:?}", user_cloned);
+                error!("{:?}", err);
 
                 return Err(ServiceError::internal_server_error(failure::err_msg(
                     "operation failed",

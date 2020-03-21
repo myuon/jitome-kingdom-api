@@ -381,9 +381,9 @@ checksum = "11c0346158a19b3627234e15596f5e465c360fcdb97d817bcb255e0510f5a788"
 
 [[package]]
 name = "debil"
-version = "0.1.1"
+version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "90919e28c63822ee6acdb92b406f506fd958423a7769dc738b59042cc0d460e6"
+checksum = "faf6808f742a10c728ccb842e346fcc9ce0b22fffaec2ec744e78587efe4d6f4"
 dependencies = [
  "async-trait",
  "debil-derive",
@@ -402,9 +402,9 @@ dependencies = [
 
 [[package]]
 name = "debil-mysql"
-version = "0.1.1"
+version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a5369c9e4f580a2809b35a78d15efeb916d70b7fcbfbac64a893d5da01a62ee6"
+checksum = "56fd9e975d18f2dad067ccdd9af7d33c955505af953f4e84e1d35c89e9a6447b"
 dependencies = [
  "async-trait",
  "debil",
