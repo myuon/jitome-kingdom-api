@@ -19,6 +19,8 @@ pub struct UserRecord {
     display_name: String,
     point: u64,
     created_at: i64,
+    #[sql(size = 100, unique = true)]
+    subject: String,
 }
 
 impl UserRecord {
@@ -29,6 +31,7 @@ impl UserRecord {
             display_name: self.display_name,
             point: self.point,
             created_at: UnixTime(self.created_at),
+            subject: self.subject,
         }
     }
 
@@ -39,6 +42,7 @@ impl UserRecord {
             display_name: user.display_name,
             point: user.point,
             created_at: user.created_at.0,
+            subject: user.subject,
         }
     }
 }
@@ -62,6 +66,19 @@ impl IUserRepository for UserRepository {
                 "{}.id = '{}'",
                 table_name::<UserRecord>(),
                 user_id.0
+            )))
+            .await?;
+
+        Ok(user.into_model())
+    }
+
+    async fn find_by_subject(&self, subject: &str) -> Result<User, ServiceError> {
+        let mut conn = self.pool.get_conn().await?;
+        let user = conn
+            .first_with::<UserRecord>(QueryBuilder::new().filter(format!(
+                "{}.subject = '{}'",
+                table_name::<UserRecord>(),
+                subject
             )))
             .await?;
 

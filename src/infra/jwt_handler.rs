@@ -1,4 +1,4 @@
-use crate::domain::model::{AuthUser, UserId};
+use crate::domain::model::AuthUser;
 use crate::wrapper::error::ServiceError;
 use biscuit::errors::Error;
 use serde::*;
@@ -66,14 +66,12 @@ impl JWTHandler {
 
         let payload = jwt.payload()?.clone();
         Ok(AuthUser {
-            user_id: UserId(
-                payload
-                    .registered
-                    .subject
-                    .as_ref()
-                    .ok_or(ServiceError::bad_request(failure::err_msg("no subject")))?
-                    .to_string(),
-            ),
+            subject: payload
+                .registered
+                .subject
+                .as_ref()
+                .ok_or(ServiceError::bad_request(failure::err_msg("no subject")))?
+                .to_string(),
         })
     }
 }

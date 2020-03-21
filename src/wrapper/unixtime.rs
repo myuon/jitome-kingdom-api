@@ -1,6 +1,6 @@
 use serde::*;
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct UnixTime(pub i64);
 
 impl UnixTime {

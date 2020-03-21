@@ -4,7 +4,7 @@ use serde::*;
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct AuthUser {
-    pub user_id: UserId,
+    pub subject: String,
 }
 
 pub struct Authorization {

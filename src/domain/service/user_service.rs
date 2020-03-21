@@ -1,7 +1,6 @@
 use crate::domain::interface::IUserRepository;
 use crate::domain::model::{Authorization, User};
 use crate::wrapper::error::ServiceError;
-use crate::wrapper::unixtime::UnixTime;
 use serde::*;
 use std::sync::Arc;
 
@@ -20,35 +19,25 @@ impl UserService {
         UserService { user_repo }
     }
 
-    /*
-    pub async fn create(
-        &self,
-        auth: Authorization,
-        input: UserCreateInput,
-    ) -> Result<(), ServiceError> {
-        auth.require_auth()?;
+    async fn ensure_user_created(&self, subject: &str) -> Result<User, ServiceError> {
+        let user = match self.user_repo.find_by_subject(subject).await {
+            Err(err) if err.status_code == http::StatusCode::NOT_FOUND => {
+                // 存在しなければ作成する
+                let user = User::new(subject.to_string(), None, "no name".to_string());
+                self.user_repo.create(user.clone()).await?;
 
-        let user = User::new(input.screen_name, input.display_name);
-        self.user_repo.create(user).await?;
+                Ok(user)
+            }
+            r => r,
+        }?;
 
-        Ok(())
+        Ok(user)
     }
-    */
 
     pub async fn get_me(&self, auth: Authorization) -> Result<serde_json::Value, ServiceError> {
         let auth_user = auth.require_auth()?;
 
-        let user = match self.user_repo.find_by_id(&auth_user.user_id).await {
-            Ok(r) => Ok(r),
-            Err(err) if err.status_code == http::StatusCode::NOT_FOUND => Ok(User {
-                id: auth_user.user_id,
-                screen_name: None,
-                display_name: "no name".to_string(),
-                point: 0,
-                created_at: UnixTime::now(),
-            }),
-            Err(err) => Err(err),
-        }?;
+        let user = self.ensure_user_created(&auth_user.subject).await?;
         let result = serde_json::json!({ "user": user });
 
         Ok(result)

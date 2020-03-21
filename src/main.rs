@@ -9,7 +9,7 @@ mod web;
 mod wrapper;
 pub use wrapper::*;
 
-use crate::infra::{JWTHandler, UserRecord, UserRepository};
+use crate::infra::{JWTHandler, UserRecord};
 use debil_mysql::DebilConn;
 use std::env;
 use std::sync::Arc;
