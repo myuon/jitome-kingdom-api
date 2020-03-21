@@ -1,3 +1,6 @@
+use serde::*;
+
+#[derive(Serialize, Deserialize)]
 pub struct UnixTime(pub i64);
 
 impl UnixTime {

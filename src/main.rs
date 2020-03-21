@@ -9,9 +9,16 @@ mod web;
 mod wrapper;
 pub use wrapper::*;
 
-use crate::infra::JWTHandler;
+use crate::infra::{JWTHandler, UserRecord, UserRepository};
+use debil_mysql::DebilConn;
 use std::env;
 use std::sync::Arc;
+
+async fn migrate(mut conn: DebilConn) -> Result<(), debil_mysql::Error> {
+    conn.migrate::<UserRecord>().await?;
+
+    Ok(())
+}
 
 #[tokio::main]
 async fn main() {
@@ -20,6 +27,11 @@ async fn main() {
 
     let db_url = env::var("DB_URL").unwrap();
     let public_key = JWTHandler::load_from_jwk(&env::var("JWK_URL").unwrap()).await;
+
+    let mut conn = debil_mysql::DebilConn::from_conn(
+        mysql_async::Conn::from_url(db_url.clone()).await.unwrap(),
+    );
+    migrate(conn).await.expect("Error in migration");
 
     let app = initializer::new(initializer::Config {
         db_url,

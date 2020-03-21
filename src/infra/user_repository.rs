@@ -11,8 +11,11 @@ use std::sync::Arc;
 #[derive(Table, Clone)]
 #[sql(table_name = "user", sql_type = "MySQLValue", primary_key = "id")]
 pub struct UserRecord {
+    #[sql(size = 100)]
     id: String,
+    #[sql(size = 100)]
     screen_name: Option<String>,
+    #[sql(size = 100)]
     display_name: String,
     point: u64,
     created_at: i64,

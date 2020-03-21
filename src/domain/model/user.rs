@@ -1,6 +1,8 @@
 use crate::domain::model::UserId;
 use crate::wrapper::unixtime::UnixTime;
+use serde::*;
 
+#[derive(Serialize, Deserialize)]
 pub struct User {
     pub id: UserId,
     pub screen_name: Option<String>,

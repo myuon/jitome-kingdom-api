@@ -35,10 +35,9 @@ impl UserService {
     */
 
     pub async fn get_me(&self, auth: Authorization) -> Result<serde_json::Value, ServiceError> {
-        let user = auth.require_auth()?;
-
-        let message = format!("You're {}", user.user_id.0);
-        let result = serde_json::json!({ "data": message });
+        let auth_user = auth.require_auth()?;
+        let user = self.user_repo.find_by_id(auth_user.user_id).await?;
+        let result = serde_json::json!({ "user": user });
 
         Ok(result)
     }
