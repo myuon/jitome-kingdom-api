@@ -1,4 +1,3 @@
-use crate::domain::model::UserId;
 use crate::wrapper::error::ServiceError;
 use serde::*;
 

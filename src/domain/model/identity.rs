@@ -1,7 +1,7 @@
 use serde::*;
 
 // auth0の発行するsubjectを使う
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct UserId(pub String);
 
 impl UserId {

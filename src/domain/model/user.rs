@@ -3,7 +3,7 @@ use crate::unixtime::UnixTime;
 use crate::url::Url;
 use serde::*;
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct User {
     pub id: UserId,
     pub screen_name: Option<String>,
@@ -30,5 +30,9 @@ impl User {
             subject,
             picture_url,
         }
+    }
+
+    pub fn add_point(&mut self, p: u64) {
+        self.point += p;
     }
 }
