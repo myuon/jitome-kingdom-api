@@ -34,12 +34,10 @@ impl UserService {
         Ok(user)
     }
 
-    pub async fn get_me(&self, auth: Authorization) -> Result<serde_json::Value, ServiceError> {
+    pub async fn get_me(&self, auth: Authorization) -> Result<User, ServiceError> {
         let auth_user = auth.require_auth()?;
 
         let user = self.ensure_user_created(&auth_user.subject).await?;
-        let result = serde_json::json!({ "user": user });
-
-        Ok(result)
+        Ok(user)
     }
 }
