@@ -1,6 +1,6 @@
 use crate::domain::interface::IGachaEventRepository;
 use crate::domain::model::{GachaEvent, GachaEventId, GachaType, UserId};
-use crate::infra::{DynamoClient, QueryInput};
+use crate::infra::{DynamoClient, QueryInput, ScanOrder};
 use crate::unixtime::UnixTime;
 use crate::wrapper::error::ServiceError;
 use async_trait::async_trait;
@@ -74,6 +74,8 @@ impl IGachaEventRepository for GachaEventRepository {
                 pk_name: "gsi_user_id_gacha_type".to_string(),
                 pk_value: GachaEventRecord::generate_gsi_user_id_gacha_type(user_id, gacha_type)
                     .into_attr(),
+                scan_order: Some(ScanOrder::Descending),
+                limit: Some(1),
             })
             .await?;
 

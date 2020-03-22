@@ -7,12 +7,26 @@ pub struct DynamoClient {
     client: dynomite::dynamodb::DynamoDbClient,
 }
 
+#[derive(PartialEq)]
+pub enum ScanOrder {
+    Ascending,
+    Descending,
+}
+
+impl Default for ScanOrder {
+    fn default() -> Self {
+        ScanOrder::Ascending
+    }
+}
+
 #[derive(Default)]
 pub struct QueryInput {
     pub table_name: String,
     pub index_name: Option<String>,
     pub pk_name: String,
     pub pk_value: dynomite::dynamodb::AttributeValue,
+    pub limit: Option<i64>,
+    pub scan_order: Option<ScanOrder>,
 }
 
 impl DynamoClient {
@@ -37,6 +51,8 @@ impl DynamoClient {
                     expression_attribute_values: Some(maplit::hashmap! {
                         ":pk".to_string() => input.pk_value,
                     }),
+                    limit: input.limit,
+                    scan_index_forward: input.scan_order.map(|s| s == ScanOrder::Ascending),
                     ..Default::default()
                 })
                 .sync()

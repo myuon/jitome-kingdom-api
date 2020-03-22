@@ -15,7 +15,11 @@ pub fn response_from<D: serde::Serialize>(result: Result<D, ServiceError>) -> Re
             hyper::StatusCode::OK,
             hyper::Body::from(serde_json::to_string(&d).unwrap()),
         ),
-        Err(err) => (err.status_code, hyper::Body::from(err.error.to_string())),
+        Err(err) => {
+            error!("{:?}", err);
+
+            (err.status_code, hyper::Body::from(err.error.to_string()))
+        }
     };
 
     hyper::Response::builder()
