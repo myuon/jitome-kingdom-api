@@ -54,6 +54,8 @@ impl GachaService {
             }
 
             warn!("Rollback completed");
+
+            return Err(err);
         };
 
         Ok(serde_json::json!({ "obtained": n }))
