@@ -16,7 +16,7 @@ services:
         --character-set-server=utf8mb4
         --collation-server=utf8mb4_bin
   app:
-    build: .
+    image: 941528793676.dkr.ecr.ap-northeast-1.amazonaws.com/jitome-kingdom-api/prod:latest
     restart: always
     ports:
       - 80:1234
