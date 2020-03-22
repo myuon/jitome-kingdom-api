@@ -39,7 +39,9 @@ impl GachaService {
                     err,
                 )))
             }),
-            Err(err) if err.status_code == http::StatusCode::NOT_FOUND => Ok(serde_json::json!({})),
+            Err(err) if err.status_code == http::StatusCode::NOT_FOUND => {
+                Ok(serde_json::json!(null))
+            }
             Err(err) => Err(err),
         }
     }
