@@ -7,15 +7,14 @@ COPY ./Cargo.lock /app
 RUN mkdir -p /app/src && echo "fn main() {}" > /app/src/main.rs
 RUN cargo build --release
 
-RUN rm /app/src/main.rs
-COPY ./src /app/src
-COPY .env /app
+# remove build cache
+RUN rm -r /app/target/release/.fingerprint/*jitome*
+
+COPY ./ /app
 RUN cargo build --release
 
 RUN cp /app/target/release/jitome-kingdom-api /app/main
-
-RUN useradd -u 50000 user
-USER user
+RUN chmod +x /app/main
 
 EXPOSE 7999
 
