@@ -43,3 +43,17 @@ pub struct GachaEvent {
     pub gacha_type: GachaType,
     pub created_at: UnixTime,
 }
+
+impl GachaEvent {
+    pub fn is_available_at(&self, current_time: UnixTime) -> bool {
+        use GachaType::*;
+
+        match self.gacha_type {
+            Daily => {
+                // デイリーガチャなので前回と違うものだったらOK
+                self.created_at.datetime_jp().date() != current_time.datetime_jp().date()
+            }
+            _ => false,
+        }
+    }
+}

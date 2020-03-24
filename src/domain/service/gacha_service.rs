@@ -56,17 +56,11 @@ impl GachaService {
             .find_by_user_type(&user.id, &GachaType::Daily)
             .await
         {
-            Ok(event) => {
-                // デイリーガチャなので同じ日にやろうとしたらエラーを返す
-                if event.created_at.datetime_jp().date() == UnixTime::now().datetime_jp().date() {
-                    return Err(ServiceError::bad_request(failure::err_msg(
-                        "Daily Gacha Rate Limit Exceeded",
-                    )));
-                }
-
-                Ok(())
-            }
+            Ok(event) if !event.is_available_at(UnixTime::now()) => Err(ServiceError::bad_request(
+                failure::err_msg("Daily Gacha Rate Limit Exceeded"),
+            )),
             Err(err) if err.status_code == http::StatusCode::NOT_FOUND => Ok(()),
+            Ok(_) => Ok(()),
             Err(err) => Err(err),
         }?;
 
