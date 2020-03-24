@@ -1,5 +1,5 @@
 use crate::domain::interface::{IGachaEventRepository, IUserRepository};
-use crate::domain::model::{Authorization, GachaEvent, GachaEventId, GachaType, User, UserId};
+use crate::domain::model::{Authorization, GachaEvent, GachaEventId, GachaType};
 use crate::error::ServiceError;
 use crate::wrapper::rand_gen::RandomGen;
 use crate::wrapper::unixtime::UnixTime;

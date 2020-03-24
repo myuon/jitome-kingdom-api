@@ -4,12 +4,17 @@ use crate::infra::{DynamoClient, QueryInput, ScanOrder};
 use crate::unixtime::UnixTime;
 use crate::wrapper::error::ServiceError;
 use async_trait::async_trait;
-use dynomite::*;
+use debil::*;
+use debil_dynamodb::Attribute;
 use std::sync::Arc;
 
-#[derive(Item, Clone)]
+#[derive(Clone, Table)]
+#[sql(
+    table_name = "gacha_events",
+    sql_type = "debil_dynamodb::DynamoType",
+    primary_key = "id"
+)]
 pub struct GachaEventRecord {
-    #[dynomite(partition_key)]
     id: String,
     user_id: String,
     gacha_type: String,
@@ -75,7 +80,7 @@ impl IGachaEventRepository for GachaEventRepository {
                 pk_value: GachaEventRecord::generate_gsi_user_id_gacha_type(user_id, gacha_type)
                     .into_attr(),
                 scan_order: Some(ScanOrder::Descending),
-                limit: Some(1),
+                limit: Some(1 as i64),
             })
             .await?;
 
