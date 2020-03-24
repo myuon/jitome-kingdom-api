@@ -39,6 +39,11 @@ pub fn handlers(app: App) -> server::App<WebContext> {
             http::Method::GET,
             api_get_latest_daily_gacha,
         )
+        .route(
+            "/gacha/daily/record",
+            http::Method::POST,
+            api_get_daily_gacha_record,
+        )
 }
 
 async fn api_hello(
@@ -81,6 +86,22 @@ async fn api_get_latest_daily_gacha(
             .services
             .gacha_service
             .get_latest_daily_event(auth)
+            .await,
+    )
+}
+
+async fn api_get_daily_gacha_record(
+    req: server::Request,
+    ps: server::Params,
+    ctx: Arc<WebContext>,
+) -> server::Response {
+    let auth = WebContext::get_authorization(req, ctx.clone());
+
+    server::response_from(
+        ctx.app
+            .services
+            .gacha_service
+            .get_daily_gacha_record(auth)
             .await,
     )
 }

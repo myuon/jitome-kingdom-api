@@ -3,12 +3,20 @@ use crate::domain::model::{Authorization, GachaEvent, GachaEventId, GachaType};
 use crate::error::ServiceError;
 use crate::wrapper::rand_gen::RandomGen;
 use crate::wrapper::unixtime::UnixTime;
+use serde::*;
 use std::sync::Arc;
 
 // ガチャ
 pub struct GachaService {
     gacha_repo: Arc<dyn IGachaEventRepository + Sync + Send>,
     user_repo: Arc<dyn IUserRepository + Sync + Send>,
+}
+
+#[derive(Serialize)]
+pub struct DailyGachaRecord {
+    latest: Option<GachaEvent>,
+    is_available: bool,
+    next_gacha_time: UnixTime,
 }
 
 impl GachaService {
@@ -44,6 +52,33 @@ impl GachaService {
             }
             Err(err) => Err(err),
         }
+    }
+
+    pub async fn get_daily_gacha_record(
+        &self,
+        auth: Authorization,
+    ) -> Result<DailyGachaRecord, ServiceError> {
+        let auth_user = auth.require_auth()?;
+        let mut user = self.user_repo.find_by_subject(&auth_user.subject).await?;
+
+        let latest = match self
+            .gacha_repo
+            .find_by_user_type(&user.id, &GachaType::Daily)
+            .await
+        {
+            Err(err) if err.status_code == http::StatusCode::NOT_FOUND => Ok(None),
+            r => r.map(|e| Some(e)),
+        }?;
+        let is_available = latest
+            .clone()
+            .map(|r| r.is_available_at(UnixTime::now()))
+            .unwrap_or(false);
+
+        Ok(DailyGachaRecord {
+            latest,
+            is_available,
+            next_gacha_time: UnixTime::now(),
+        })
     }
 
     pub async fn try_daily(&self, auth: Authorization) -> Result<serde_json::Value, ServiceError> {
