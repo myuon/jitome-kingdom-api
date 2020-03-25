@@ -41,7 +41,7 @@ pub fn handlers(app: App) -> server::App<WebContext> {
         )
         .route(
             "/gacha/daily/record",
-            http::Method::POST,
+            http::Method::GET,
             api_get_daily_gacha_record,
         )
 }
