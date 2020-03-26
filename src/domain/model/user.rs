@@ -26,7 +26,7 @@ impl User {
             screen_name,
             display_name,
             point: 0,
-            created_at: UnixTime::now_jst(),
+            created_at: UnixTime::now(),
             subject,
             picture_url,
         }
