@@ -2,7 +2,7 @@ use crate::domain::model::{GachaEventId, UserId};
 use crate::wrapper::unixtime::UnixTime;
 use serde::{Serialize, Serializer};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum GachaType {
     Unknown,
     Daily,
@@ -36,7 +36,13 @@ impl Serialize for GachaType {
     }
 }
 
-#[derive(Debug, Clone, Serialize)]
+impl Default for GachaType {
+    fn default() -> Self {
+        GachaType::Unknown
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Default, PartialEq)]
 pub struct GachaEvent {
     pub id: GachaEventId,
     pub user_id: UserId,

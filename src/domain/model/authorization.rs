@@ -1,7 +1,7 @@
 use crate::wrapper::error::ServiceError;
 use serde::*;
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Serialize, Deserialize, Clone, Default)]
 pub struct AuthUser {
     pub subject: String,
 }

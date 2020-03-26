@@ -104,3 +104,40 @@ impl IUserRepository for UserRepository {
         Ok(())
     }
 }
+
+#[cfg(test)]
+pub mod user_repository_mock {
+    use super::*;
+    use std::sync::Mutex;
+
+    pub struct UserRepositoryStub {
+        item: Arc<Mutex<User>>,
+    }
+
+    impl UserRepositoryStub {
+        pub fn new(user: User) -> Self {
+            UserRepositoryStub {
+                item: Arc::new(Mutex::new(user)),
+            }
+        }
+    }
+
+    #[async_trait]
+    impl IUserRepository for UserRepositoryStub {
+        async fn find_by_id(&self, user_id: &UserId) -> Result<User, ServiceError> {
+            Ok(self.item.lock().unwrap().clone())
+        }
+
+        async fn find_by_subject(&self, subject: &str) -> Result<User, ServiceError> {
+            Ok(self.item.lock().unwrap().clone())
+        }
+
+        async fn create(&self, user: User) -> Result<(), ServiceError> {
+            Ok(())
+        }
+
+        async fn save(&self, user: User) -> Result<(), ServiceError> {
+            Ok(())
+        }
+    }
+}

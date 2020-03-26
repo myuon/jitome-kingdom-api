@@ -135,3 +135,79 @@ impl GachaService {
         Ok(serde_json::json!({ "obtained": n }))
     }
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use crate::domain::model::{AuthUser, User, UserId};
+    use crate::infra::gacha_event_repository_mock::*;
+    use crate::infra::user_repository_mock::*;
+
+    #[tokio::test]
+    async fn gacha_available_with_no_records() -> Result<(), ServiceError> {
+        let user_id = UserId::new();
+        let service = GachaService::new(
+            Arc::new(GachaEventRepositoryStub::new_empty()),
+            Arc::new(UserRepositoryStub::new(User {
+                id: user_id.clone(),
+                ..Default::default()
+            })),
+        );
+
+        let record = service
+            .get_daily_gacha_record(Authorization::new(Ok(Default::default())))
+            .await?;
+        assert!(record.is_available);
+        assert_eq!(record.latest, None);
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn gacha_available_with_old_record() -> Result<(), ServiceError> {
+        let user_id = UserId::new();
+        let event = GachaEvent {
+            gacha_type: GachaType::Daily,
+            created_at: UnixTime(0),
+            ..Default::default()
+        };
+        let service = GachaService::new(
+            Arc::new(GachaEventRepositoryStub::new(event.clone())),
+            Arc::new(UserRepositoryStub::new(User {
+                id: user_id.clone(),
+                ..Default::default()
+            })),
+        );
+
+        let record = service
+            .get_daily_gacha_record(Authorization::new(Ok(Default::default())))
+            .await?;
+        assert!(record.is_available);
+        assert_eq!(record.latest, Some(event.clone()));
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn gacha_not_available_with_todays_record() -> Result<(), ServiceError> {
+        let user_id = UserId::new();
+        let service = GachaService::new(
+            Arc::new(GachaEventRepositoryStub::new(GachaEvent {
+                gacha_type: GachaType::Daily,
+                created_at: UnixTime::now(),
+                ..Default::default()
+            })),
+            Arc::new(UserRepositoryStub::new(User {
+                id: user_id.clone(),
+                ..Default::default()
+            })),
+        );
+
+        let record = service
+            .get_daily_gacha_record(Authorization::new(Ok(Default::default())))
+            .await?;
+        assert!(!record.is_available);
+
+        Ok(())
+    }
+}

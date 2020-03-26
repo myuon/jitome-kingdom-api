@@ -103,3 +103,45 @@ impl IGachaEventRepository for GachaEventRepository {
         Ok(())
     }
 }
+
+#[cfg(test)]
+pub mod gacha_event_repository_mock {
+    use super::*;
+    use std::sync::Mutex;
+
+    pub struct GachaEventRepositoryStub {
+        item: Arc<Mutex<Option<GachaEvent>>>,
+    }
+
+    impl GachaEventRepositoryStub {
+        pub fn new(item: GachaEvent) -> Self {
+            GachaEventRepositoryStub {
+                item: Arc::new(Mutex::new(Some(item))),
+            }
+        }
+
+        pub fn new_empty() -> Self {
+            GachaEventRepositoryStub {
+                item: Arc::new(Mutex::new(None)),
+            }
+        }
+    }
+
+    #[async_trait]
+    impl IGachaEventRepository for GachaEventRepositoryStub {
+        async fn find_by_user_type(
+            &self,
+            user_id: &UserId,
+            gacha_type: &GachaType,
+        ) -> Result<GachaEvent, ServiceError> {
+            match self.item.lock().unwrap().clone() {
+                Some(event) => Ok(event),
+                None => Err(ServiceError::not_found(failure::err_msg("error"))),
+            }
+        }
+
+        async fn create(&self, event: GachaEvent) -> Result<(), ServiceError> {
+            Ok(())
+        }
+    }
+}

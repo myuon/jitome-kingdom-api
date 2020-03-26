@@ -3,7 +3,7 @@ use crate::unixtime::UnixTime;
 use crate::url::Url;
 use serde::*;
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
 pub struct User {
     pub id: UserId,
     pub screen_name: Option<String>,

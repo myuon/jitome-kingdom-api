@@ -2,7 +2,7 @@ use chrono::offset::TimeZone;
 use chrono::{DateTime, NaiveDateTime};
 use serde::*;
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug, Default, PartialOrd, PartialEq)]
 pub struct UnixTime(pub i64);
 
 impl UnixTime {

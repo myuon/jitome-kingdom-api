@@ -1,6 +1,6 @@
 use serde::*;
 
-#[derive(Clone, Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug, Default, PartialOrd, PartialEq)]
 pub struct UserId(pub String);
 
 impl UserId {
@@ -9,7 +9,7 @@ impl UserId {
     }
 }
 
-#[derive(Clone, Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug, Default, PartialOrd, PartialEq)]
 pub struct GachaEventId(pub String);
 
 impl GachaEventId {
