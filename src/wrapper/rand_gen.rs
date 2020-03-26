@@ -1,7 +1,7 @@
 pub struct RandomGen {}
 
 impl RandomGen {
-    // [x,y]
+    // [x,y)
     fn clamp(n: u64, (x, y): (u64, u64)) -> u64 {
         x + n % (y - x)
     }
@@ -22,8 +22,11 @@ fn test_clamp() {
     let n = RandomGen::clamp(5, (5, 10));
     assert_eq!(n, 5);
 
+    let n = RandomGen::clamp(9, (5, 10));
+    assert_eq!(n, 9);
+
     let n = RandomGen::clamp(10, (5, 10));
-    assert_eq!(n, 10);
+    assert_eq!(n, 5);
 
     let n = RandomGen::clamp(20, (5, 10));
     assert_eq!(n, 5);

@@ -72,7 +72,8 @@ impl GachaService {
         let is_available = latest
             .clone()
             .map(|r| r.is_available_at(UnixTime::now()))
-            .unwrap_or(false);
+            // 最後のガチャ記録が存在しなければavailableとする
+            .unwrap_or(true);
 
         Ok(DailyGachaRecord {
             latest,
@@ -99,7 +100,8 @@ impl GachaService {
             Err(err) => Err(err),
         }?;
 
-        let n = RandomGen::range(5, 15);
+        // 終端の16は含まない
+        let n = RandomGen::range(5, 16);
         user.add_point(n);
         self.user_repo.save(user.clone()).await?;
 
