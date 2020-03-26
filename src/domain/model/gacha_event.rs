@@ -57,3 +57,16 @@ impl GachaEvent {
         }
     }
 }
+
+#[test]
+fn gacha_event_is_available_at() {
+    let ev = GachaEvent {
+        id: GachaEventId::new(),
+        user_id: UserId::new(),
+        gacha_type: GachaType::Daily,
+        created_at: UnixTime(0),
+    };
+
+    assert!(!ev.is_available_at(UnixTime(1)));
+    assert!(ev.is_available_at(UnixTime(89400)));
+}
