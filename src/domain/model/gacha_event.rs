@@ -51,7 +51,7 @@ impl GachaEvent {
         match self.gacha_type {
             Daily => {
                 // デイリーガチャなので前回と違うものだったらOK
-                self.created_at.datetime_jp().date() != current_time.datetime_jp().date()
+                self.created_at.datetime().date() != current_time.datetime().date()
             }
             _ => false,
         }

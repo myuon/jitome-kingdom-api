@@ -71,14 +71,14 @@ impl GachaService {
         }?;
         let is_available = latest
             .clone()
-            .map(|r| r.is_available_at(UnixTime::now()))
+            .map(|r| r.is_available_at(UnixTime::now_jst()))
             // 最後のガチャ記録が存在しなければavailableとする
             .unwrap_or(true);
 
         Ok(DailyGachaRecord {
             latest,
             is_available,
-            next_gacha_time: UnixTime::now(),
+            next_gacha_time: UnixTime::now_jst(),
         })
     }
 
@@ -92,9 +92,9 @@ impl GachaService {
             .find_by_user_type(&user.id, &GachaType::Daily)
             .await
         {
-            Ok(event) if !event.is_available_at(UnixTime::now()) => Err(ServiceError::bad_request(
-                failure::err_msg("Daily Gacha Rate Limit Exceeded"),
-            )),
+            Ok(event) if !event.is_available_at(UnixTime::now_jst()) => Err(
+                ServiceError::bad_request(failure::err_msg("Daily Gacha Rate Limit Exceeded")),
+            ),
             Err(err) if err.status_code == http::StatusCode::NOT_FOUND => Ok(()),
             Ok(_) => Ok(()),
             Err(err) => Err(err),
@@ -109,7 +109,7 @@ impl GachaService {
             id: GachaEventId::new(),
             user_id: user.id,
             gacha_type: GachaType::Daily,
-            created_at: UnixTime::now(),
+            created_at: UnixTime::now_jst(),
         };
 
         if let Err(err) = self.gacha_repo.create(event.clone()).await {
