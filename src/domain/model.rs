@@ -9,3 +9,6 @@ pub use user::*;
 
 mod gacha_event;
 pub use gacha_event::*;
+
+mod gift;
+pub use gift::*;

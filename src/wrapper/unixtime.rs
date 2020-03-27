@@ -1,5 +1,5 @@
 use chrono::offset::TimeZone;
-use chrono::{DateTime, NaiveDateTime};
+use chrono::DateTime;
 use serde::*;
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default, PartialOrd, PartialEq)]

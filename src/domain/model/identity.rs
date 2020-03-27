@@ -17,3 +17,12 @@ impl GachaEventId {
         GachaEventId(uuid::Uuid::new_v4().to_string())
     }
 }
+
+#[derive(Clone, Serialize, Deserialize, Debug, Default, PartialOrd, PartialEq)]
+pub struct GiftId(pub String);
+
+impl GiftId {
+    pub fn new() -> Self {
+        GiftId(uuid::Uuid::new_v4().to_string())
+    }
+}
