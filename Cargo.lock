@@ -355,9 +355,9 @@ checksum = "11c0346158a19b3627234e15596f5e465c360fcdb97d817bcb255e0510f5a788"
 
 [[package]]
 name = "debil"
-version = "0.2.0"
+version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2cebc9225826c63f7e234c2a701d38758f8651d8bc358a70fa1f74f4369a78ef"
+checksum = "26895daad4ed56f4a97f90e583e7a63a10221bb619610de1c326678df6e5f9d8"
 dependencies = [
  "async-trait",
  "debil-derive",

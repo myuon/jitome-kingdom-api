@@ -12,3 +12,6 @@ pub use dynamo_client::*;
 
 mod gacha_event_repository;
 pub use gacha_event_repository::*;
+
+mod gift_repository;
+pub use gift_repository::*;

@@ -111,13 +111,17 @@ pub mod user_repository_mock {
     use std::sync::Mutex;
 
     pub struct UserRepositoryStub {
-        item: Arc<Mutex<User>>,
+        pub item: Arc<Mutex<User>>,
+        pub created: Arc<Mutex<Vec<User>>>,
+        pub saved: Arc<Mutex<Vec<User>>>,
     }
 
     impl UserRepositoryStub {
         pub fn new(user: User) -> Self {
             UserRepositoryStub {
                 item: Arc::new(Mutex::new(user)),
+                created: Arc::new(Mutex::new(Vec::new())),
+                saved: Arc::new(Mutex::new(Vec::new())),
             }
         }
     }
@@ -133,10 +137,14 @@ pub mod user_repository_mock {
         }
 
         async fn create(&self, user: User) -> Result<(), ServiceError> {
+            self.created.lock().unwrap().push(user);
+
             Ok(())
         }
 
         async fn save(&self, user: User) -> Result<(), ServiceError> {
+            self.saved.lock().unwrap().push(user);
+
             Ok(())
         }
     }

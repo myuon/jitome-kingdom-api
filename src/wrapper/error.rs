@@ -71,3 +71,9 @@ impl<E: Sync + Send + Error + 'static> From<rusoto_core::RusotoError<E>> for Ser
         ServiceError::internal_server_error(From::from(err))
     }
 }
+
+impl From<serde_json::Error> for ServiceError {
+    fn from(err: serde_json::Error) -> Self {
+        ServiceError::bad_request(From::from(err))
+    }
+}

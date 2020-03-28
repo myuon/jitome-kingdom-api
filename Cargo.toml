@@ -20,7 +20,7 @@ chrono = "0.4.11"
 chrono-tz = "0.5.1"
 uuid = { version = "0.8.1", features = ["v4"] }
 async-trait = "0.1.24"
-debil = "0.2.0"
+debil = "0.2.1"
 debil-mysql = "0.2.0"
 debil-dynamodb = "0.1.1"
 mysql_async = "0.22.1"

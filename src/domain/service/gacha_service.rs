@@ -35,7 +35,7 @@ impl GachaService {
         auth: Authorization,
     ) -> Result<serde_json::Value, ServiceError> {
         let auth_user = auth.require_auth()?;
-        let mut user = self.user_repo.find_by_subject(&auth_user.subject).await?;
+        let user = self.user_repo.find_by_subject(&auth_user.subject).await?;
 
         match self
             .gacha_repo
@@ -59,7 +59,7 @@ impl GachaService {
         auth: Authorization,
     ) -> Result<DailyGachaRecord, ServiceError> {
         let auth_user = auth.require_auth()?;
-        let mut user = self.user_repo.find_by_subject(&auth_user.subject).await?;
+        let user = self.user_repo.find_by_subject(&auth_user.subject).await?;
 
         let latest = match self
             .gacha_repo
@@ -139,7 +139,7 @@ impl GachaService {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::domain::model::{AuthUser, User, UserId};
+    use crate::domain::model::{User, UserId};
     use crate::infra::gacha_event_repository_mock::*;
     use crate::infra::user_repository_mock::*;
 
