@@ -7,9 +7,11 @@ use crate::wrapper::url::Url;
 use async_trait::async_trait;
 use debil::*;
 use debil_mysql::*;
+use std::collections::hash_map::RandomState;
+use std::collections::HashMap;
 use std::sync::Arc;
 
-#[derive(Table, Clone)]
+#[derive(Table, Clone, Accessor)]
 #[sql(table_name = "user", sql_type = "MySQLValue", primary_key = "id")]
 pub struct UserRecord {
     #[sql(size = 100)]
@@ -62,13 +64,31 @@ impl UserRepository {
     }
 }
 
+struct UserIdMapper {
+    id: String,
+}
+
+impl SQLMapper for UserIdMapper {
+    type ValueType = debil_mysql::MySQLValue;
+
+    fn map_from_sql(hm: HashMap<String, Self::ValueType>) -> Self {
+        UserIdMapper {
+            id: debil_mysql::MySQLValue::deserialize(hm[accessor!(UserRecord::id)].clone()),
+        }
+    }
+}
+
 #[async_trait]
 impl IUserRepository for UserRepository {
-    async fn list(&self) -> Result<Vec<User>, ServiceError> {
+    async fn list_id(&self) -> Result<Vec<UserId>, ServiceError> {
         let mut conn = self.pool.get_conn().await?;
-        let users = conn.load::<UserRecord>().await?;
+        let users = conn
+            .load_with2::<UserRecord, UserIdMapper>(
+                QueryBuilder::new().selects(vec![accessor!(UserRecord::id)]),
+            )
+            .await?;
 
-        Ok(users.into_iter().map(|user| user.into_model()).collect())
+        Ok(users.into_iter().map(|m| UserId(m.id)).collect())
     }
 
     async fn find_by_id(&self, user_id: &UserId) -> Result<User, ServiceError> {
@@ -135,7 +155,7 @@ pub mod user_repository_mock {
 
     #[async_trait]
     impl IUserRepository for UserRepositoryStub {
-        async fn list(&self) -> Result<Vec<User>, ServiceError> {
+        async fn list_id(&self) -> Result<Vec<UserId>, ServiceError> {
             unimplemented!()
         }
 
