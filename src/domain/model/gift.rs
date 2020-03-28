@@ -3,7 +3,7 @@ use crate::wrapper::error::ServiceError;
 use crate::wrapper::unixtime::UnixTime;
 use serde::*;
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialOrd, PartialEq)]
 pub enum GiftType {
     Point(u64),
 }

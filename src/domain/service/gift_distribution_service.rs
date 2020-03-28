@@ -58,3 +58,72 @@ impl GiftDistributionService {
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::domain::model::{AuthUser, Role, UserId};
+    use crate::infra::gift_repository_mock::GiftRepositoryMock;
+    use crate::infra::user_repository_mock::UserRepositoryListIdStub;
+
+    #[tokio::test]
+    async fn distribute_point_requires_admin() -> Result<(), ServiceError> {
+        let user_repo = Arc::new(UserRepositoryListIdStub::new(vec![
+            UserId::new(),
+            UserId::new(),
+            UserId::new(),
+            UserId::new(),
+        ]));
+        let gift_repo = Arc::new(GiftRepositoryMock::new());
+        let service = GiftDistributionService::new(user_repo.clone(), gift_repo.clone());
+
+        let err = service
+            .distribute_point(
+                Authorization::new(Ok(AuthUser {
+                    subject: "".to_string(),
+                    roles: vec![],
+                })),
+                DistributeInput {
+                    point: 0,
+                    description: "".to_string(),
+                },
+            )
+            .await
+            .expect_err("error");
+
+        assert_eq!(err.status_code, http::StatusCode::UNAUTHORIZED);
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn distribute_point() -> Result<(), ServiceError> {
+        let user_repo = Arc::new(UserRepositoryListIdStub::new(vec![
+            UserId::new(),
+            UserId::new(),
+            UserId::new(),
+            UserId::new(),
+        ]));
+        let gift_repo = Arc::new(GiftRepositoryMock::new());
+        let service = GiftDistributionService::new(user_repo.clone(), gift_repo.clone());
+
+        service
+            .distribute_point(
+                Authorization::new(Ok(AuthUser {
+                    subject: "1".to_string(),
+                    roles: vec![Role::Admin],
+                })),
+                DistributeInput {
+                    point: 100,
+                    description: "hoge piyo".to_string(),
+                },
+            )
+            .await?;
+
+        let created = gift_repo.created.lock().unwrap().clone();
+        assert_eq!(created.len(), 4);
+        assert_eq!(created[0].gift_type, GiftType::Point(100));
+
+        Ok(())
+    }
+}

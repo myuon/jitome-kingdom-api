@@ -116,6 +116,47 @@ pub mod gift_repository_mock {
     use super::*;
     use std::sync::Mutex;
 
+    pub struct GiftRepositoryMock {
+        pub created: Arc<Mutex<Vec<Gift>>>,
+        pub saved: Arc<Mutex<Vec<Gift>>>,
+    }
+
+    impl GiftRepositoryMock {
+        pub fn new() -> Self {
+            GiftRepositoryMock {
+                created: Arc::new(Mutex::new(Vec::new())),
+                saved: Arc::new(Mutex::new(Vec::new())),
+            }
+        }
+    }
+
+    #[async_trait]
+    impl IGiftRepository for GiftRepositoryMock {
+        async fn find_by_id(&self, gift_id: &GiftId) -> Result<Gift, ServiceError> {
+            unimplemented!()
+        }
+
+        async fn find_by_user_id_status(
+            &self,
+            user_id: &UserId,
+            status: GiftStatus,
+        ) -> Result<Vec<Gift>, ServiceError> {
+            unimplemented!()
+        }
+
+        async fn create(&self, gift: Gift) -> Result<(), ServiceError> {
+            self.created.lock().unwrap().push(gift);
+
+            Ok(())
+        }
+
+        async fn save(&self, gift: Gift) -> Result<(), ServiceError> {
+            self.saved.lock().unwrap().push(gift);
+
+            Ok(())
+        }
+    }
+
     pub struct GiftRepositoryItemStub {
         pub item: Arc<Mutex<Gift>>,
         pub created: Arc<Mutex<Vec<Gift>>>,

@@ -7,7 +7,6 @@ use crate::wrapper::url::Url;
 use async_trait::async_trait;
 use debil::*;
 use debil_mysql::*;
-use std::collections::hash_map::RandomState;
 use std::collections::HashMap;
 use std::sync::Arc;
 
@@ -138,7 +137,7 @@ pub mod user_repository_mock {
     use std::sync::Mutex;
 
     pub struct UserRepositoryStub {
-        pub item: Arc<Mutex<User>>,
+        pub item: User,
         pub created: Arc<Mutex<Vec<User>>>,
         pub saved: Arc<Mutex<Vec<User>>>,
     }
@@ -146,7 +145,7 @@ pub mod user_repository_mock {
     impl UserRepositoryStub {
         pub fn new(user: User) -> Self {
             UserRepositoryStub {
-                item: Arc::new(Mutex::new(user)),
+                item: user,
                 created: Arc::new(Mutex::new(Vec::new())),
                 saved: Arc::new(Mutex::new(Vec::new())),
             }
@@ -160,11 +159,11 @@ pub mod user_repository_mock {
         }
 
         async fn find_by_id(&self, user_id: &UserId) -> Result<User, ServiceError> {
-            Ok(self.item.lock().unwrap().clone())
+            Ok(self.item.clone())
         }
 
         async fn find_by_subject(&self, subject: &str) -> Result<User, ServiceError> {
-            Ok(self.item.lock().unwrap().clone())
+            Ok(self.item.clone())
         }
 
         async fn create(&self, user: User) -> Result<(), ServiceError> {
@@ -177,6 +176,39 @@ pub mod user_repository_mock {
             self.saved.lock().unwrap().push(user);
 
             Ok(())
+        }
+    }
+
+    pub struct UserRepositoryListIdStub {
+        pub ids: Vec<UserId>,
+    }
+
+    impl UserRepositoryListIdStub {
+        pub fn new(ids: Vec<UserId>) -> Self {
+            UserRepositoryListIdStub { ids }
+        }
+    }
+
+    #[async_trait]
+    impl IUserRepository for UserRepositoryListIdStub {
+        async fn list_id(&self) -> Result<Vec<UserId>, ServiceError> {
+            Ok(self.ids.clone())
+        }
+
+        async fn find_by_id(&self, user_id: &UserId) -> Result<User, ServiceError> {
+            unimplemented!()
+        }
+
+        async fn find_by_subject(&self, subject: &str) -> Result<User, ServiceError> {
+            unimplemented!()
+        }
+
+        async fn create(&self, user: User) -> Result<(), ServiceError> {
+            unimplemented!()
+        }
+
+        async fn save(&self, user: User) -> Result<(), ServiceError> {
+            unimplemented!()
         }
     }
 }
