@@ -1,5 +1,5 @@
 use crate::domain::interface::IUserRepository;
-use crate::domain::model::{Authorization, User};
+use crate::domain::model::{Authorization, Role, User};
 use crate::wrapper::error::ServiceError;
 use serde::*;
 use std::sync::Arc;
@@ -12,6 +12,13 @@ pub struct UserService {
 pub struct UserCreateInput {
     screen_name: Option<String>,
     display_name: String,
+}
+
+#[derive(Serialize)]
+pub struct UserProfile {
+    #[serde(flatten)]
+    user: User,
+    roles: Vec<Role>,
 }
 
 impl UserService {
@@ -34,10 +41,13 @@ impl UserService {
         Ok(user)
     }
 
-    pub async fn get_me(&self, auth: Authorization) -> Result<User, ServiceError> {
+    pub async fn get_me(&self, auth: Authorization) -> Result<UserProfile, ServiceError> {
         let auth_user = auth.require_auth()?;
 
         let user = self.ensure_user_created(&auth_user.subject).await?;
-        Ok(user)
+        Ok(UserProfile {
+            user,
+            roles: auth_user.roles,
+        })
     }
 }

@@ -1,4 +1,4 @@
-use crate::domain::model::AuthUser;
+use crate::domain::model::{AuthUser, Role};
 use crate::wrapper::error::ServiceError;
 use biscuit::errors::Error;
 use serde::*;
@@ -12,7 +12,10 @@ impl From<biscuit::errors::Error> for ServiceError {
 
 // for parsing payload in jwt
 #[derive(Serialize, Deserialize)]
-struct CustomPayload {}
+struct CustomPayload {
+    #[serde(rename = "https://jitome.ramda.io/roles")]
+    roles: Option<Vec<String>>,
+}
 
 pub struct JWTHandler {
     public_key: Arc<biscuit::jwk::JWKSet<biscuit::Empty>>,
@@ -66,6 +69,14 @@ impl JWTHandler {
                 .as_ref()
                 .ok_or(ServiceError::bad_request(failure::err_msg("no subject")))?
                 .to_string(),
+            roles: payload
+                .private
+                .roles
+                .as_ref()
+                .unwrap_or(&Vec::new())
+                .iter()
+                .map(|role| Role::from_str(&role))
+                .collect::<Vec<_>>(),
         })
     }
 }

@@ -64,6 +64,13 @@ impl UserRepository {
 
 #[async_trait]
 impl IUserRepository for UserRepository {
+    async fn list(&self) -> Result<Vec<User>, ServiceError> {
+        let mut conn = self.pool.get_conn().await?;
+        let users = conn.load::<UserRecord>().await?;
+
+        Ok(users.into_iter().map(|user| user.into_model()).collect())
+    }
+
     async fn find_by_id(&self, user_id: &UserId) -> Result<User, ServiceError> {
         let mut conn = self.pool.get_conn().await?;
         let user = conn
@@ -128,6 +135,10 @@ pub mod user_repository_mock {
 
     #[async_trait]
     impl IUserRepository for UserRepositoryStub {
+        async fn list(&self) -> Result<Vec<User>, ServiceError> {
+            unimplemented!()
+        }
+
         async fn find_by_id(&self, user_id: &UserId) -> Result<User, ServiceError> {
             Ok(self.item.lock().unwrap().clone())
         }
