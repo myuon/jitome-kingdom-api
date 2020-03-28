@@ -72,14 +72,21 @@ impl IGiftRepository for GiftRepository {
         records.into_model()
     }
 
-    async fn find_by_user_id(&self, user_id: &UserId) -> Result<Vec<Gift>, ServiceError> {
+    async fn find_by_user_id_status(
+        &self,
+        user_id: &UserId,
+        status: GiftStatus,
+    ) -> Result<Vec<Gift>, ServiceError> {
         let mut conn = self.pool.get_conn().await?;
         let records = conn
             .load_with::<GiftRecord>(debil::QueryBuilder::new().filter(format!(
-                "{}.{} = '{:?}'",
+                "{}.{} = '{:?}' AND {}.{} = '{:?}'",
                 table_name::<GiftRecord>(),
                 accessor!(GiftRecord::user_id),
-                user_id
+                user_id,
+                table_name::<GiftRecord>(),
+                accessor!(GiftRecord::status),
+                status
             )))
             .await?;
 
@@ -131,7 +138,11 @@ pub mod gift_repository_mock {
             Ok(self.item.lock().unwrap().clone())
         }
 
-        async fn find_by_user_id(&self, user_id: &UserId) -> Result<Vec<Gift>, ServiceError> {
+        async fn find_by_user_id_status(
+            &self,
+            user_id: &UserId,
+            status: GiftStatus,
+        ) -> Result<Vec<Gift>, ServiceError> {
             unimplemented!()
         }
 

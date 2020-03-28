@@ -1,5 +1,5 @@
 use crate::domain::interface::{IGiftRepository, IUserRepository};
-use crate::domain::model::{Authorization, Gift, GiftId, GiftType};
+use crate::domain::model::{Authorization, Gift, GiftId, GiftStatus, GiftType};
 use crate::wrapper::error::ServiceError;
 use std::sync::Arc;
 
@@ -19,14 +19,20 @@ impl GiftService {
         }
     }
 
-    pub async fn list(&self, auth: Authorization) -> Result<Vec<Gift>, ServiceError> {
+    pub async fn list_by_status(
+        &self,
+        auth: Authorization,
+        status: GiftStatus,
+    ) -> Result<Vec<Gift>, ServiceError> {
         let auth_user = auth.require_auth()?;
         let user = self
             .user_repository
             .find_by_subject(&auth_user.subject)
             .await?;
 
-        self.gift_repository.find_by_user_id(&user.id).await
+        self.gift_repository
+            .find_by_user_id_status(&user.id, status)
+            .await
     }
 
     pub async fn open(&self, auth: Authorization, gift_id: &GiftId) -> Result<(), ServiceError> {
