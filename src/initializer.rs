@@ -1,5 +1,7 @@
-use crate::domain::service::{GachaService, UserService};
-use crate::infra::{ConnPool, DynamoClient, GachaEventRepository, JWTHandler, UserRepository};
+use crate::domain::service::{GachaService, GiftDistributionService, GiftService, UserService};
+use crate::infra::{
+    ConnPool, DynamoClient, GachaEventRepository, GiftRepository, JWTHandler, UserRepository,
+};
 use std::sync::Arc;
 
 pub struct Config {
@@ -14,11 +16,14 @@ pub struct Infras {
     pub jwt_handler: Arc<JWTHandler>,
     pub user_repository: Arc<UserRepository>,
     pub gacha_event_repository: Arc<GachaEventRepository>,
+    pub gift_repository: Arc<GiftRepository>,
 }
 
 pub struct Services {
     pub user_service: UserService,
     pub gacha_service: GachaService,
+    pub gift_service: GiftService,
+    pub gift_distribution_service: GiftDistributionService,
 }
 
 pub struct App {
@@ -37,12 +42,21 @@ pub fn new(config: Config) -> App {
             dynamo_client.clone(),
             config.gacha_event_repository_table_name,
         )),
+        gift_repository: Arc::new(GiftRepository::new(conn_pool.clone())),
     };
     let services = Services {
         user_service: UserService::new(infras.user_repository.clone()),
         gacha_service: GachaService::new(
             infras.gacha_event_repository.clone(),
             infras.user_repository.clone(),
+        ),
+        gift_service: GiftService::new(
+            infras.gift_repository.clone(),
+            infras.user_repository.clone(),
+        ),
+        gift_distribution_service: GiftDistributionService::new(
+            infras.user_repository.clone(),
+            infras.gift_repository.clone(),
         ),
     };
 

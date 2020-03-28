@@ -9,6 +9,12 @@ use std::sync::Arc;
 pub type Request = hyper::Request<hyper::Body>;
 pub type Response = hyper::Response<hyper::Body>;
 
+pub async fn response_from_async<D: serde::Serialize>(
+    result: impl Future<Output = Result<D, ServiceError>>,
+) -> Response {
+    response_from(result.await)
+}
+
 pub fn response_from<D: serde::Serialize>(result: Result<D, ServiceError>) -> Response {
     let (s, b) = match result {
         Ok(d) => (

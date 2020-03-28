@@ -36,7 +36,16 @@ impl GiftStatus {
     }
 }
 
-#[derive(Clone, Debug)]
+impl Serialize for GiftStatus {
+    fn serialize<S>(&self, serializer: S) -> Result<<S as Serializer>::Ok, <S as Serializer>::Error>
+    where
+        S: Serializer,
+    {
+        serializer.serialize_str(&self.to_string())
+    }
+}
+
+#[derive(Clone, Debug, Serialize)]
 pub struct Gift {
     pub id: GiftId,
     pub gift_type: GiftType,
