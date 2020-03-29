@@ -1,11 +1,17 @@
 use crate::domain::interface::{IGiftRepository, IUserRepository};
 use crate::domain::model::{Authorization, Gift, GiftId, GiftStatus, GiftType};
 use crate::wrapper::error::ServiceError;
+use serde::*;
 use std::sync::Arc;
 
 pub struct GiftService {
     gift_repository: Arc<dyn IGiftRepository + Sync + Send>,
     user_repository: Arc<dyn IUserRepository + Sync + Send>,
+}
+
+#[derive(Serialize)]
+pub struct ListGiftResponse {
+    data: Vec<Gift>,
 }
 
 impl GiftService {
@@ -23,16 +29,19 @@ impl GiftService {
         &self,
         auth: Authorization,
         status: GiftStatus,
-    ) -> Result<Vec<Gift>, ServiceError> {
+    ) -> Result<ListGiftResponse, ServiceError> {
         let auth_user = auth.require_auth()?;
         let user = self
             .user_repository
             .find_by_subject(&auth_user.subject)
             .await?;
 
-        self.gift_repository
+        let gifts = self
+            .gift_repository
             .find_by_user_id_status(&user.id, status)
-            .await
+            .await?;
+
+        Ok(ListGiftResponse { data: gifts })
     }
 
     pub async fn open(&self, auth: Authorization, gift_id: &GiftId) -> Result<(), ServiceError> {
