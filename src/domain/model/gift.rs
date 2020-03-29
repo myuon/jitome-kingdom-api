@@ -5,6 +5,7 @@ use serde::*;
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialOrd, PartialEq)]
 pub enum GiftType {
+    #[serde(rename = "point")]
     Point(u64),
 }
 

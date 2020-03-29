@@ -1,12 +1,37 @@
 use crate::domain::interface::IGiftRepository;
-use crate::domain::model::{Gift, GiftId, GiftStatus, UserId};
+use crate::domain::model::{Gift, GiftId, GiftStatus, GiftType, UserId};
 use crate::infra::ConnPool;
 use crate::wrapper::error::ServiceError;
 use crate::wrapper::unixtime::UnixTime;
 use async_trait::async_trait;
 use debil::*;
 use debil_mysql::*;
+use serde::*;
 use std::sync::Arc;
+
+#[derive(Serialize, Deserialize)]
+pub enum GiftTypeRecord {
+    #[serde(rename = "point")]
+    Point(u64),
+}
+
+impl GiftTypeRecord {
+    pub fn from_model(model: GiftType) -> Self {
+        use GiftType::*;
+
+        match model {
+            Point(p) => GiftTypeRecord::Point(p),
+        }
+    }
+
+    pub fn into_model(self) -> GiftType {
+        use GiftTypeRecord::*;
+
+        match self {
+            Point(p) => GiftType::Point(p),
+        }
+    }
+}
 
 #[derive(Table, Clone, Accessor)]
 #[sql(table_name = "gift", sql_type = "MySQLValue", primary_key = "id")]
@@ -26,7 +51,9 @@ impl GiftRecord {
     pub fn from_model(model: Gift) -> Result<Self, ServiceError> {
         Ok(GiftRecord {
             id: model.id.0,
-            gift_type: serde_json::to_string(&model.gift_type)?,
+            gift_type: serde_json::to_string::<GiftTypeRecord>(&GiftTypeRecord::from_model(
+                model.gift_type,
+            ))?,
             description: model.description,
             user_id: model.user_id.0,
             created_at: model.created_at.0,
@@ -37,7 +64,7 @@ impl GiftRecord {
     pub fn into_model(self) -> Result<Gift, ServiceError> {
         Ok(Gift {
             id: GiftId(self.id),
-            gift_type: serde_json::from_str(&self.gift_type)?,
+            gift_type: serde_json::from_str::<GiftTypeRecord>(&self.gift_type)?.into_model(),
             description: self.description,
             user_id: UserId(self.user_id),
             created_at: UnixTime(self.created_at),
@@ -62,10 +89,10 @@ impl IGiftRepository for GiftRepository {
         let mut conn = self.pool.get_conn().await?;
         let records = conn
             .first_with::<GiftRecord>(debil::QueryBuilder::new().filter(format!(
-                "{}.{} = '{:?}'",
+                "{}.{} = '{}'",
                 table_name::<GiftRecord>(),
                 accessor!(GiftRecord::id),
-                gift_id
+                gift_id.0
             )))
             .await?;
 
