@@ -80,13 +80,13 @@ impl IGiftRepository for GiftRepository {
         let mut conn = self.pool.get_conn().await?;
         let records = conn
             .load_with::<GiftRecord>(debil::QueryBuilder::new().filter(format!(
-                "{}.{} = '{:?}' AND {}.{} = '{:?}'",
+                "{}.{} = '{}' AND {}.{} = '{}'",
                 table_name::<GiftRecord>(),
                 accessor!(GiftRecord::user_id),
-                user_id,
+                user_id.0,
                 table_name::<GiftRecord>(),
                 accessor!(GiftRecord::status),
-                status
+                status.to_string()
             )))
             .await?;
 
