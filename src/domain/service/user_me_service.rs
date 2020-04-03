@@ -66,6 +66,13 @@ impl UserMeService {
     ) -> Result<(), ServiceError> {
         let auth_user = auth.require_auth()?;
 
+        let r = regex::Regex::new(r"^[a-zA-Z0-9_]{3,}$").unwrap();
+        if !r.is_match(&input.screen_name) {
+            return Err(ServiceError::bad_request(failure::err_msg(
+                "screen_name does not match the policy",
+            )));
+        }
+
         let mut user = self.user_repo.find_by_subject(&auth_user.subject).await?;
         user.update(
             input.screen_name,

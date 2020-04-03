@@ -834,6 +834,7 @@ dependencies = [
  "mysql_async",
  "path-tree",
  "rand",
+ "regex",
  "reqwest",
  "rusoto_core",
  "rusoto_dynamodb",
