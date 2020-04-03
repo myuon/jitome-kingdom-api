@@ -4,7 +4,7 @@ use crate::wrapper::error::ServiceError;
 use serde::*;
 use std::sync::Arc;
 
-pub struct UserService {
+pub struct UserMeService {
     user_repo: Arc<dyn IUserRepository + Sync + Send>,
 }
 
@@ -21,9 +21,9 @@ pub struct UserProfile {
     roles: Vec<Role>,
 }
 
-impl UserService {
-    pub fn new(user_repo: Arc<dyn IUserRepository + Sync + Send>) -> UserService {
-        UserService { user_repo }
+impl UserMeService {
+    pub fn new(user_repo: Arc<dyn IUserRepository + Sync + Send>) -> UserMeService {
+        UserMeService { user_repo }
     }
 
     async fn ensure_user_created(&self, subject: &str) -> Result<User, ServiceError> {

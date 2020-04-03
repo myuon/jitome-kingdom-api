@@ -1,5 +1,5 @@
-mod user_service;
-pub use user_service::*;
+mod user_me_service;
+pub use user_me_service::*;
 
 mod gacha_service;
 pub use gacha_service::*;

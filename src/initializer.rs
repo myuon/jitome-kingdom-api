@@ -1,4 +1,4 @@
-use crate::domain::service::{GachaService, GiftDistributionService, GiftService, UserService};
+use crate::domain::service::{GachaService, GiftDistributionService, GiftService, UserMeService};
 use crate::infra::{
     ConnPool, DynamoClient, GachaEventRepository, GiftRepository, JWTHandler, UserRepository,
 };
@@ -20,7 +20,7 @@ pub struct Infras {
 }
 
 pub struct Services {
-    pub user_service: UserService,
+    pub user_service: UserMeService,
     pub gacha_service: GachaService,
     pub gift_service: GiftService,
     pub gift_distribution_service: GiftDistributionService,
@@ -45,7 +45,7 @@ pub fn new(config: Config) -> App {
         gift_repository: Arc::new(GiftRepository::new(conn_pool.clone())),
     };
     let services = Services {
-        user_service: UserService::new(infras.user_repository.clone()),
+        user_service: UserMeService::new(infras.user_repository.clone()),
         gacha_service: GachaService::new(
             infras.gacha_event_repository.clone(),
             infras.user_repository.clone(),
