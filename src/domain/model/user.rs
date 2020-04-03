@@ -35,4 +35,10 @@ impl User {
     pub fn add_point(&mut self, p: u64) {
         self.point += p;
     }
+
+    pub fn update(&mut self, screen_name: String, display_name: String, picture_url: Url) {
+        self.screen_name = Some(screen_name);
+        self.display_name = display_name;
+        self.picture_url = Some(picture_url);
+    }
 }

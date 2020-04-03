@@ -44,6 +44,12 @@ pub fn handlers(app: App) -> server::App<WebContext> {
     server::App::new(WebContext { app })
         .route("/hello", http::Method::GET, api_hello)
         .route("/me", http::Method::GET, api_get_me)
+        .route("/me", http::Method::PUT, api_update_me)
+        .route(
+            "/users/:screen_name/available",
+            http::Method::GET,
+            api_check_user_available,
+        )
         .route("/gacha/daily", http::Method::POST, api_try_daily_gacha)
         .route(
             "/gacha/daily/latest",
@@ -57,7 +63,7 @@ pub fn handlers(app: App) -> server::App<WebContext> {
         )
         .route("/gift/ready", http::Method::GET, api_list_gifts_ready)
         .route("/gift/opened", http::Method::GET, api_list_gifts_opened)
-        .route("/gift/:giftId/open", http::Method::POST, api_open_gift)
+        .route("/gift/:gift_id/open", http::Method::POST, api_open_gift)
         .route(
             "/admin/gift/distribute_all",
             http::Method::POST,
@@ -80,7 +86,47 @@ async fn api_get_me(
 ) -> server::Response {
     let auth = WebContext::get_authorization(&req, ctx.clone());
 
-    server::response_from(ctx.app.services.user_service.get_me(auth).await)
+    server::response_from(ctx.app.services.user_me_service.get_me(auth).await)
+}
+
+async fn api_update_me(
+    req: server::Request,
+    ps: server::Params,
+    ctx: Arc<WebContext>,
+) -> server::Response {
+    let auth = WebContext::get_authorization(&req, ctx.clone());
+
+    server::response_from_async(async {
+        let body = WebContext::read_body(req.into_body()).await?;
+
+        ctx.app.services.user_me_service.update_me(auth, body).await
+    })
+    .await
+}
+
+async fn api_check_user_available(
+    req: server::Request,
+    ps: server::Params,
+    ctx: Arc<WebContext>,
+) -> server::Response {
+    let auth = WebContext::get_authorization(&req, ctx.clone());
+    let screen_name = match ps.find("screen_name") {
+        None => {
+            return server::response_from::<()>(Err(ServiceError::bad_request(failure::err_msg(
+                "not_found",
+            ))))
+        }
+        Some(v) => v,
+    };
+
+    server::response_from_async(async {
+        ctx.app
+            .services
+            .user_service
+            .is_screen_name_available(auth, screen_name)
+            .await
+    })
+    .await
 }
 
 async fn api_try_daily_gacha(
@@ -163,7 +209,7 @@ async fn api_open_gift(
     ctx: Arc<WebContext>,
 ) -> server::Response {
     let auth = WebContext::get_authorization(&req, ctx.clone());
-    let gift_id = match ps.find("giftId") {
+    let gift_id = match ps.find("gift_id") {
         None => {
             return server::response_from::<()>(Err(ServiceError::bad_request(failure::err_msg(
                 "not_found",

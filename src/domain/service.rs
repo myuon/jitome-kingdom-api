@@ -9,3 +9,6 @@ pub use gift_distribution_service::*;
 
 mod gift_service;
 pub use gift_service::*;
+
+mod user_service;
+pub use user_service::*;

@@ -15,7 +15,7 @@ use std::sync::Arc;
 pub struct UserRecord {
     #[sql(size = 100)]
     id: String,
-    #[sql(size = 100)]
+    #[sql(size = 100, unique = true)]
     screen_name: Option<String>,
     #[sql(size = 100)]
     display_name: String,
@@ -97,6 +97,19 @@ impl IUserRepository for UserRepository {
                 "{}.id = '{}'",
                 table_name::<UserRecord>(),
                 user_id.0
+            )))
+            .await?;
+
+        Ok(user.into_model())
+    }
+
+    async fn find_by_screen_name(&self, screen_name: &String) -> Result<User, ServiceError> {
+        let mut conn = self.pool.get_conn().await?;
+        let user = conn
+            .first_with::<UserRecord>(QueryBuilder::new().filter(format!(
+                "{}.screen_name = '{}'",
+                table_name::<UserRecord>(),
+                screen_name
             )))
             .await?;
 

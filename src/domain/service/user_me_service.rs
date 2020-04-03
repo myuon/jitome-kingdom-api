@@ -1,6 +1,7 @@
 use crate::domain::interface::IUserRepository;
 use crate::domain::model::{Authorization, Role, User};
 use crate::wrapper::error::ServiceError;
+use crate::wrapper::url::Url;
 use serde::*;
 use std::sync::Arc;
 
@@ -11,6 +12,13 @@ pub struct UserMeService {
 #[derive(Deserialize)]
 pub struct UserCreateInput {
     screen_name: Option<String>,
+    display_name: String,
+}
+
+#[derive(Deserialize)]
+pub struct UpdateMeInput {
+    picture_url: String,
+    screen_name: String,
     display_name: String,
 }
 
@@ -49,5 +57,23 @@ impl UserMeService {
             user,
             roles: auth_user.roles,
         })
+    }
+
+    pub async fn update_me(
+        &self,
+        auth: Authorization,
+        input: UpdateMeInput,
+    ) -> Result<(), ServiceError> {
+        let auth_user = auth.require_auth()?;
+
+        let mut user = self.user_repo.find_by_subject(&auth_user.subject).await?;
+        user.update(
+            input.screen_name,
+            input.display_name,
+            Url(input.picture_url),
+        );
+        self.user_repo.save(user).await?;
+
+        Ok(())
     }
 }
