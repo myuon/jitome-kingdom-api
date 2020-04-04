@@ -30,6 +30,7 @@ async fn main() {
     let db_url = env::var("DB_URL").unwrap();
     let public_key = JWTHandler::load_from_jwk(&env::var("JWK_URL").unwrap()).await;
     let gacha_event_repository_table_name = env::var("GACHA_EVENT_REPOSITORY_TABLE_NAME").unwrap();
+    let user_icon_upload_bucket = env::var("USER_ICON_UPLOAD_BUCKET").unwrap();
 
     let mut conn = debil_mysql::DebilConn::from_conn(
         mysql_async::Conn::from_url(db_url.clone()).await.unwrap(),
@@ -41,6 +42,7 @@ async fn main() {
         db_url,
         public_key: Arc::new(public_key),
         gacha_event_repository_table_name,
+        user_icon_upload_bucket,
     });
 
     server::HttpServer::new()

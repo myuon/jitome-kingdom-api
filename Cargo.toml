@@ -29,6 +29,8 @@ reqwest = { version = "0.10", features = ["json"] }
 rand = "0.7.3"
 rusoto_core = "0.43.0"
 rusoto_dynamodb = "0.43.0"
+rusoto_s3 = "0.43.0"
 maplit = "1.0.2"
 bytes = "0.5.4"
 regex = "1"
+base64 = "0.12.0"

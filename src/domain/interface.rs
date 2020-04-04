@@ -1,4 +1,6 @@
+use crate::base64::Base64;
 use crate::domain::model::{GachaEvent, GachaType, Gift, GiftId, GiftStatus, User, UserId};
+use crate::url::Url;
 use crate::wrapper::error::ServiceError;
 use async_trait::async_trait;
 
@@ -32,4 +34,9 @@ pub trait IGiftRepository {
     ) -> Result<Vec<Gift>, ServiceError>;
     async fn create(&self, gift: Gift) -> Result<(), ServiceError>;
     async fn save(&self, gift: Gift) -> Result<(), ServiceError>;
+}
+
+#[async_trait]
+pub trait IUserIconUploader {
+    async fn upload_user_icon(&self, user_id: &UserId, image: Base64) -> Result<Url, ServiceError>;
 }

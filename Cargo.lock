@@ -816,6 +816,7 @@ name = "jitome-kingdom-api"
 version = "0.1.0"
 dependencies = [
  "async-trait",
+ "base64 0.12.0",
  "biscuit",
  "bytes",
  "chrono",
@@ -838,6 +839,7 @@ dependencies = [
  "reqwest",
  "rusoto_core",
  "rusoto_dynamodb",
+ "rusoto_s3",
  "serde",
  "serde_json",
  "tokio",
@@ -1569,6 +1571,19 @@ dependencies = [
  "rusoto_core",
  "serde",
  "serde_json",
+]
+
+[[package]]
+name = "rusoto_s3"
+version = "0.43.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2b6bc3221ae5a2c036d5757eee68a2ffb6b7f87b8a83adbf4271c8133fdee01c"
+dependencies = [
+ "async-trait",
+ "bytes",
+ "futures",
+ "rusoto_core",
+ "xml-rs",
 ]
 
 [[package]]

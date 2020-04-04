@@ -15,3 +15,9 @@ pub use gacha_event_repository::*;
 
 mod gift_repository;
 pub use gift_repository::*;
+
+mod s3_client;
+pub use s3_client::*;
+
+mod user_icon_uploader;
+pub use user_icon_uploader::*;

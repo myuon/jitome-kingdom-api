@@ -45,6 +45,7 @@ pub fn handlers(app: App) -> server::App<WebContext> {
         .route("/hello", http::Method::GET, api_hello)
         .route("/me", http::Method::GET, api_get_me)
         .route("/me", http::Method::PUT, api_update_me)
+        .route("/me/icon", http::Method::POST, api_upload_icon)
         .route(
             "/users/:screen_name/available",
             http::Method::GET,
@@ -100,6 +101,25 @@ async fn api_update_me(
         let body = WebContext::read_body(req.into_body()).await?;
 
         ctx.app.services.user_me_service.update_me(auth, body).await
+    })
+    .await
+}
+
+async fn api_upload_icon(
+    req: server::Request,
+    ps: server::Params,
+    ctx: Arc<WebContext>,
+) -> server::Response {
+    let auth = WebContext::get_authorization(&req, ctx.clone());
+
+    server::response_from_async(async {
+        let body = WebContext::read_body(req.into_body()).await?;
+
+        ctx.app
+            .services
+            .user_icon_upload_service
+            .upload(auth, body)
+            .await
     })
     .await
 }

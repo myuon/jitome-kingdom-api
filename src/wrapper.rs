@@ -1,3 +1,4 @@
+pub mod base64;
 pub mod error;
 pub mod rand_gen;
 pub mod server;
