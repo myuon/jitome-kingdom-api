@@ -21,3 +21,6 @@ pub use s3_client::*;
 
 mod user_icon_uploader;
 pub use user_icon_uploader::*;
+
+mod janken_event_repository;
+pub use janken_event_repository::*;

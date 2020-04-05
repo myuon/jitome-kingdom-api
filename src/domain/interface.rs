@@ -1,5 +1,7 @@
 use crate::base64::Base64;
-use crate::domain::model::{GachaEvent, GachaType, Gift, GiftId, GiftStatus, User, UserId};
+use crate::domain::model::{
+    GachaEvent, GachaType, Gift, GiftId, GiftStatus, JankenEvent, JankenStatus, User, UserId,
+};
 use crate::url::Url;
 use crate::wrapper::error::ServiceError;
 use async_trait::async_trait;
@@ -44,4 +46,15 @@ pub trait IGiftRepository {
 #[async_trait]
 pub trait IUserIconUploader {
     async fn upload_user_icon(&self, user_id: &UserId, image: Base64) -> Result<Url, ServiceError>;
+}
+
+#[async_trait]
+pub trait IJankenEventRepository {
+    async fn find_by_user_id_status(
+        &self,
+        user_id: &UserId,
+        status: JankenStatus,
+    ) -> Result<Vec<JankenEvent>, ServiceError>;
+    async fn find_by_user_id(&self, user_id: &UserId) -> Result<Vec<JankenEvent>, ServiceError>;
+    async fn create(&self, janken_event: JankenEvent) -> Result<(), ServiceError>;
 }

@@ -286,7 +286,11 @@ pub mod gift_repository_mock {
 
     #[async_trait]
     impl IGiftRepository for GiftRepositoryItemStub {
-        async fn find_by_id(&self, gift_id: &GiftId) -> Result<Gift, ServiceError> {
+        async fn find_by_id(
+            &self,
+            gift_id: &GiftId,
+            user_id: &UserId,
+        ) -> Result<Gift, ServiceError> {
             Ok(self.item.lock().unwrap().clone())
         }
 
@@ -304,9 +308,12 @@ pub mod gift_repository_mock {
             Ok(())
         }
 
-        async fn save(&self, gift: Gift) -> Result<(), ServiceError> {
-            self.saved.lock().unwrap().push(gift);
-
+        async fn save_status(
+            &self,
+            gift_id: GiftId,
+            user_id: UserId,
+            status: GiftStatus,
+        ) -> Result<(), ServiceError> {
             Ok(())
         }
     }

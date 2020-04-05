@@ -12,3 +12,6 @@ pub use gacha_event::*;
 
 mod gift;
 pub use gift::*;
+
+mod janken_event;
+pub use janken_event::*;

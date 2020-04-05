@@ -26,3 +26,12 @@ impl GiftId {
         GiftId(uuid::Uuid::new_v4().to_string())
     }
 }
+
+#[derive(Clone, Serialize, Deserialize, Debug, Default, PartialOrd, PartialEq)]
+pub struct JankenEventId(pub String);
+
+impl JankenEventId {
+    pub fn new() -> Self {
+        JankenEventId(uuid::Uuid::new_v4().to_string())
+    }
+}

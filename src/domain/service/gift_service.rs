@@ -97,11 +97,7 @@ mod tests {
             id: UserId("AAA".to_string()),
             ..Default::default()
         };
-        let gift = Gift::new(
-            GiftType::Point(5),
-            "".to_string(),
-            UserId("BBB".to_string()),
-        );
+        let gift = Gift::new(GiftType::Point(5), "".to_string());
 
         let gift_repo = Arc::new(GiftRepositoryItemStub::new(gift.clone()));
         let user_repo = Arc::new(UserRepositoryStub::new(user));
@@ -123,7 +119,7 @@ mod tests {
             point: 10,
             ..Default::default()
         };
-        let gift = Gift::new(GiftType::Point(5), "".to_string(), user.id.clone());
+        let gift = Gift::new(GiftType::Point(5), "".to_string());
 
         let gift_repo = Arc::new(GiftRepositoryItemStub::new(gift.clone()));
         let user_repo = Arc::new(UserRepositoryStub::new(user));
