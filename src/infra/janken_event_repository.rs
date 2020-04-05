@@ -67,13 +67,20 @@ impl IJankenEventRepository for JankenEventRepository {
     ) -> Result<Vec<JankenEvent>, ServiceError> {
         let mut conn = self.pool.get_conn().await?;
         let records = conn
-            .load_with::<JankenEventRecord>(debil::QueryBuilder::new().filter(format!(
-                "{} = '{}' and {} = '{}'",
-                accessor!(JankenEventRecord::user_id),
-                user_id.0,
-                accessor!(JankenEventRecord::status),
-                status.to_string()
-            )))
+            .load_with::<JankenEventRecord>(
+                debil::QueryBuilder::new()
+                    .filter(format!(
+                        "{} = '{}' and {} = '{}'",
+                        accessor!(JankenEventRecord::user_id),
+                        user_id.0,
+                        accessor!(JankenEventRecord::status),
+                        status.to_string()
+                    ))
+                    .order_by(
+                        accessor!(JankenEventRecord::created_at),
+                        Ordering::Descending,
+                    ),
+            )
             .await?;
 
         records.into_iter().map(|r| r.into_model()).collect()
@@ -82,11 +89,18 @@ impl IJankenEventRepository for JankenEventRepository {
     async fn find_by_user_id(&self, user_id: &UserId) -> Result<Vec<JankenEvent>, ServiceError> {
         let mut conn = self.pool.get_conn().await?;
         let records = conn
-            .load_with::<JankenEventRecord>(debil::QueryBuilder::new().filter(format!(
-                "{} = '{}'",
-                accessor!(JankenEventRecord::user_id),
-                user_id.0,
-            )))
+            .load_with::<JankenEventRecord>(
+                debil::QueryBuilder::new()
+                    .filter(format!(
+                        "{} = '{}'",
+                        accessor!(JankenEventRecord::user_id),
+                        user_id.0,
+                    ))
+                    .order_by(
+                        accessor!(JankenEventRecord::created_at),
+                        Ordering::Descending,
+                    ),
+            )
             .await?;
 
         records.into_iter().map(|r| r.into_model()).collect()

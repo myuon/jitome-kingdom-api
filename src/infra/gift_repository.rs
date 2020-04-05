@@ -170,7 +170,8 @@ impl IGiftRepository for GiftRepository {
                     .append_selects(vec![
                         accessor!(GiftUserRelation::user_id),
                         accessor!(GiftUserRelation::status),
-                    ]),
+                    ])
+                    .order_by(accessor!(GiftRecord::created_at), Ordering::Descending),
             )
             .await?;
 
