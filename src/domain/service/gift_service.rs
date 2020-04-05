@@ -50,13 +50,9 @@ impl GiftService {
             .user_repository
             .find_by_subject(&auth_user.subject)
             .await?;
+        let user_cloned = user.clone();
 
         let mut gift = self.gift_repository.find_by_id(gift_id, &user.id).await?;
-        if user.id != gift.user_id {
-            return Err(ServiceError::unauthorized(failure::err_msg(
-                "access_denied",
-            )));
-        }
 
         gift.open()?;
         match gift.gift_type {
@@ -66,7 +62,24 @@ impl GiftService {
             }
         }
 
-        self.gift_repository.save_status(gift).await?;
+        match self
+            .gift_repository
+            .save_status(gift.id, user_cloned.id.clone(), gift.status)
+            .await
+        {
+            Ok(_) => (),
+            Err(err) => {
+                error!("Error: {:?}", err);
+                error!("Start to rollback...");
+
+                // エラーが起きたらロールバックする
+                // ロールバックも失敗したら諦める
+                self.user_repository.save(user_cloned).await?;
+
+                warn!("Rollback completed");
+            }
+        }
+
         Ok(())
     }
 }

@@ -1,4 +1,4 @@
-use crate::domain::model::{GiftId, UserId};
+use crate::domain::model::GiftId;
 use crate::wrapper::error::ServiceError;
 use crate::wrapper::unixtime::UnixTime;
 use serde::*;
@@ -51,18 +51,16 @@ pub struct Gift {
     pub id: GiftId,
     pub gift_type: GiftType,
     pub description: String,
-    pub user_id: UserId,
     pub created_at: UnixTime,
     pub status: GiftStatus,
 }
 
 impl Gift {
-    pub fn new(gift_type: GiftType, description: String, user_id: UserId) -> Self {
+    pub fn new(gift_type: GiftType, description: String) -> Self {
         Gift {
             id: GiftId::new(),
             gift_type,
             description,
-            user_id,
             created_at: UnixTime::now(),
             status: GiftStatus::Ready,
         }

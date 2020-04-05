@@ -33,7 +33,12 @@ pub trait IGiftRepository {
         status: GiftStatus,
     ) -> Result<Vec<Gift>, ServiceError>;
     async fn create(&self, gift: Gift) -> Result<(), ServiceError>;
-    async fn save_status(&self, gift: Gift) -> Result<(), ServiceError>;
+    async fn save_status(
+        &self,
+        gift_id: GiftId,
+        user_id: UserId,
+        status: GiftStatus,
+    ) -> Result<(), ServiceError>;
 }
 
 #[async_trait]

@@ -34,7 +34,7 @@ impl GiftTypeRecord {
     }
 }
 
-#[derive(Table, Clone, Accessor)]
+#[derive(Table, Clone, Accessor, Debug)]
 #[sql(table_name = "gift", sql_type = "MySQLValue", primary_key = "id")]
 pub struct GiftRecord {
     #[sql(size = 100)]
@@ -44,7 +44,20 @@ pub struct GiftRecord {
     pub created_at: i64,
 }
 
-#[derive(Table, Clone, Accessor)]
+impl GiftRecord {
+    pub fn from_model(model: Gift) -> Result<Self, ServiceError> {
+        Ok(GiftRecord {
+            id: model.id.0.clone(),
+            gift_type: serde_json::to_string::<GiftTypeRecord>(&GiftTypeRecord::from_model(
+                model.gift_type,
+            ))?,
+            description: model.description,
+            created_at: model.created_at.0,
+        })
+    }
+}
+
+#[derive(Table, Clone, Accessor, Debug)]
 #[sql(
     table_name = "gift_user_relation",
     sql_type = "MySQLValue",
@@ -59,6 +72,7 @@ pub struct GiftUserRelation {
     pub status: String,
 }
 
+#[derive(Debug)]
 struct JoinedGiftRecordUserRelationView {
     gift: GiftRecord,
     user_relation: GiftUserRelation,
@@ -76,19 +90,12 @@ impl SQLMapper for JoinedGiftRecordUserRelationView {
 }
 
 impl JoinedGiftRecordUserRelationView {
-    pub fn from_model(model: Gift) -> Result<Self, ServiceError> {
+    pub fn from_model(model: Gift, user_id: UserId) -> Result<Self, ServiceError> {
         Ok(JoinedGiftRecordUserRelationView {
-            gift: GiftRecord {
-                id: model.id.0.clone(),
-                gift_type: serde_json::to_string::<GiftTypeRecord>(&GiftTypeRecord::from_model(
-                    model.gift_type,
-                ))?,
-                description: model.description,
-                created_at: model.created_at.0,
-            },
+            gift: GiftRecord::from_model(model.clone())?,
             user_relation: GiftUserRelation {
                 id: model.id.0,
-                user_id: model.user_id.0,
+                user_id: user_id.0,
                 status: model.status.to_string(),
             },
         })
@@ -99,7 +106,6 @@ impl JoinedGiftRecordUserRelationView {
             id: GiftId(self.gift.id),
             gift_type: serde_json::from_str::<GiftTypeRecord>(&self.gift.gift_type)?.into_model(),
             description: self.gift.description,
-            user_id: UserId(self.user_relation.user_id),
             created_at: UnixTime(self.gift.created_at),
             status: GiftStatus::from_str(&self.user_relation.status),
         })
@@ -159,7 +165,7 @@ impl IGiftRepository for GiftRepository {
                     .inner_join(table_name::<GiftUserRelation>(), ("id", "id"))
                     .filter(format!(
                         "{}.{} = '{}' AND {}.{} = '{}'",
-                        table_name::<GiftRecord>(),
+                        table_name::<GiftUserRelation>(),
                         accessor!(GiftUserRelation::user_id),
                         user_id.0,
                         table_name::<GiftUserRelation>(),
@@ -189,17 +195,24 @@ impl IGiftRepository for GiftRepository {
 
     async fn create(&self, gift: Gift) -> Result<(), ServiceError> {
         let mut conn = self.pool.get_conn().await?;
-        let v = JoinedGiftRecordUserRelationView::from_model(gift)?;
-        conn.create(v.gift).await?;
-        conn.create(v.user_relation).await?;
+        conn.create(GiftRecord::from_model(gift)?).await?;
 
         Ok(())
     }
 
-    async fn save_status(&self, gift: Gift) -> Result<(), ServiceError> {
+    async fn save_status(
+        &self,
+        gift_id: GiftId,
+        user_id: UserId,
+        status: GiftStatus,
+    ) -> Result<(), ServiceError> {
         let mut conn = self.pool.get_conn().await?;
-        let v = JoinedGiftRecordUserRelationView::from_model(gift)?;
-        conn.save(v.user_relation).await?;
+        conn.save(GiftUserRelation {
+            id: gift_id.0,
+            user_id: user_id.0,
+            status: status.to_string(),
+        })
+        .await?;
 
         Ok(())
     }

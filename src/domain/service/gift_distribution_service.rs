@@ -38,13 +38,15 @@ impl GiftDistributionService {
         let users = self.user_repo.list_id().await?;
         info!("Starting distribution to {:?} users...", users.len());
 
+        let gift = Gift::new(GiftType::Point(input.point), input.description.to_string());
+        self.gift_repo.create(gift.clone()).await?;
+
         for user_id in users {
-            let gift = Gift::new(
-                GiftType::Point(input.point),
-                input.description.to_string(),
-                user_id,
-            );
-            match self.gift_repo.create(gift).await {
+            match self
+                .gift_repo
+                .save_status(gift.id.clone(), user_id, gift.status.clone())
+                .await
+            {
                 Err(err) => {
                     error!("Failed to create a gift, {:?}", err);
                     continue;
