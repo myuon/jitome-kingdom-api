@@ -72,7 +72,7 @@ impl SQLMapper for UserIdMapper {
 
     fn map_from_sql(hm: HashMap<String, Self::ValueType>) -> Self {
         UserIdMapper {
-            id: debil_mysql::MySQLValue::deserialize(hm[accessor!(UserRecord::id)].clone()),
+            id: debil_mysql::MySQLValue::deserialize(hm[accessor_name!(UserRecord::id)].clone()),
         }
     }
 }

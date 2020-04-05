@@ -128,19 +128,16 @@ impl IGiftRepository for GiftRepository {
         let mut conn = self.pool.get_conn().await?;
         let gift = conn
             .first_with::<GiftRecord>(debil::QueryBuilder::new().filter(format!(
-                "{}.{} = '{}'",
-                table_name::<GiftRecord>(),
+                "{} = '{}'",
                 accessor!(GiftRecord::id),
                 gift_id.0
             )))
             .await?;
         let user_relation = conn
             .first_with::<GiftUserRelation>(debil::QueryBuilder::new().filter(format!(
-                "{}.{} = '{}' and {}.{} = '{}'",
-                table_name::<GiftUserRelation>(),
+                "{} = '{}' and {} = '{}'",
                 accessor!(GiftUserRelation::id),
                 gift_id.0,
-                table_name::<GiftUserRelation>(),
                 accessor!(GiftUserRelation::user_id),
                 user_id.0,
             )))
@@ -164,25 +161,15 @@ impl IGiftRepository for GiftRepository {
                 debil::QueryBuilder::new()
                     .inner_join(table_name::<GiftUserRelation>(), ("id", "id"))
                     .filter(format!(
-                        "{}.{} = '{}' AND {}.{} = '{}'",
-                        table_name::<GiftUserRelation>(),
+                        "{} = '{}' AND {} = '{}'",
                         accessor!(GiftUserRelation::user_id),
                         user_id.0,
-                        table_name::<GiftUserRelation>(),
                         accessor!(GiftUserRelation::status),
                         status.to_string()
                     ))
                     .append_selects(vec![
-                        format!(
-                            "{}.{}",
-                            table_name::<GiftUserRelation>(),
-                            accessor!(GiftUserRelation::user_id)
-                        ),
-                        format!(
-                            "{}.{}",
-                            table_name::<GiftUserRelation>(),
-                            accessor!(GiftUserRelation::status)
-                        ),
+                        accessor!(GiftUserRelation::user_id),
+                        accessor!(GiftUserRelation::status),
                     ]),
             )
             .await?;

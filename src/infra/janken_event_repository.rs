@@ -68,11 +68,9 @@ impl IJankenEventRepository for JankenEventRepository {
         let mut conn = self.pool.get_conn().await?;
         let records = conn
             .load_with::<JankenEventRecord>(debil::QueryBuilder::new().filter(format!(
-                "{}.{} = '{}' and {}.{} = '{}'",
-                table_name::<JankenEventRecord>(),
+                "{} = '{}' and {} = '{}'",
                 accessor!(JankenEventRecord::user_id),
                 user_id.0,
-                table_name::<JankenEventRecord>(),
                 accessor!(JankenEventRecord::status),
                 status.to_string()
             )))
@@ -85,8 +83,7 @@ impl IJankenEventRepository for JankenEventRepository {
         let mut conn = self.pool.get_conn().await?;
         let records = conn
             .load_with::<JankenEventRecord>(debil::QueryBuilder::new().filter(format!(
-                "{}.{} = '{}'",
-                table_name::<JankenEventRecord>(),
+                "{} = '{}'",
                 accessor!(JankenEventRecord::user_id),
                 user_id.0,
             )))
