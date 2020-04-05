@@ -51,7 +51,7 @@ impl GiftService {
             .find_by_subject(&auth_user.subject)
             .await?;
 
-        let mut gift = self.gift_repository.find_by_id(gift_id).await?;
+        let mut gift = self.gift_repository.find_by_id(gift_id, &user.id).await?;
         if user.id != gift.user_id {
             return Err(ServiceError::unauthorized(failure::err_msg(
                 "access_denied",
@@ -66,7 +66,7 @@ impl GiftService {
             }
         }
 
-        self.gift_repository.save(gift).await?;
+        self.gift_repository.save_status(gift).await?;
         Ok(())
     }
 }

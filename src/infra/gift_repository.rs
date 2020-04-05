@@ -7,6 +7,7 @@ use async_trait::async_trait;
 use debil::*;
 use debil_mysql::*;
 use serde::*;
+use std::collections::HashMap;
 use std::sync::Arc;
 
 #[derive(Serialize, Deserialize)]
@@ -40,35 +41,67 @@ pub struct GiftRecord {
     pub id: String,
     pub gift_type: String,
     pub description: String,
+    pub created_at: i64,
+}
+
+#[derive(Table, Clone, Accessor)]
+#[sql(
+    table_name = "gift_user_relation",
+    sql_type = "MySQLValue",
+    primary_key = "id, user_id"
+)]
+pub struct GiftUserRelation {
+    #[sql(size = 100)]
+    pub id: String,
     #[sql(size = 100)]
     pub user_id: String,
-    pub created_at: i64,
     #[sql(size = 50)]
     pub status: String,
 }
 
-impl GiftRecord {
+struct JoinedGiftRecordUserRelationView {
+    gift: GiftRecord,
+    user_relation: GiftUserRelation,
+}
+
+impl SQLMapper for JoinedGiftRecordUserRelationView {
+    type ValueType = MySQLValue;
+
+    fn map_from_sql(h: HashMap<String, Self::ValueType>) -> Self {
+        JoinedGiftRecordUserRelationView {
+            gift: map_from_sql::<GiftRecord>(h.clone()),
+            user_relation: map_from_sql::<GiftUserRelation>(h),
+        }
+    }
+}
+
+impl JoinedGiftRecordUserRelationView {
     pub fn from_model(model: Gift) -> Result<Self, ServiceError> {
-        Ok(GiftRecord {
-            id: model.id.0,
-            gift_type: serde_json::to_string::<GiftTypeRecord>(&GiftTypeRecord::from_model(
-                model.gift_type,
-            ))?,
-            description: model.description,
-            user_id: model.user_id.0,
-            created_at: model.created_at.0,
-            status: model.status.to_string(),
+        Ok(JoinedGiftRecordUserRelationView {
+            gift: GiftRecord {
+                id: model.id.0.clone(),
+                gift_type: serde_json::to_string::<GiftTypeRecord>(&GiftTypeRecord::from_model(
+                    model.gift_type,
+                ))?,
+                description: model.description,
+                created_at: model.created_at.0,
+            },
+            user_relation: GiftUserRelation {
+                id: model.id.0,
+                user_id: model.user_id.0,
+                status: model.status.to_string(),
+            },
         })
     }
 
     pub fn into_model(self) -> Result<Gift, ServiceError> {
         Ok(Gift {
-            id: GiftId(self.id),
-            gift_type: serde_json::from_str::<GiftTypeRecord>(&self.gift_type)?.into_model(),
-            description: self.description,
-            user_id: UserId(self.user_id),
-            created_at: UnixTime(self.created_at),
-            status: GiftStatus::from_str(&self.status),
+            id: GiftId(self.gift.id),
+            gift_type: serde_json::from_str::<GiftTypeRecord>(&self.gift.gift_type)?.into_model(),
+            description: self.gift.description,
+            user_id: UserId(self.user_relation.user_id),
+            created_at: UnixTime(self.gift.created_at),
+            status: GiftStatus::from_str(&self.user_relation.status),
         })
     }
 }
@@ -85,9 +118,9 @@ impl GiftRepository {
 
 #[async_trait]
 impl IGiftRepository for GiftRepository {
-    async fn find_by_id(&self, gift_id: &GiftId) -> Result<Gift, ServiceError> {
+    async fn find_by_id(&self, gift_id: &GiftId, user_id: &UserId) -> Result<Gift, ServiceError> {
         let mut conn = self.pool.get_conn().await?;
-        let records = conn
+        let gift = conn
             .first_with::<GiftRecord>(debil::QueryBuilder::new().filter(format!(
                 "{}.{} = '{}'",
                 table_name::<GiftRecord>(),
@@ -95,8 +128,23 @@ impl IGiftRepository for GiftRepository {
                 gift_id.0
             )))
             .await?;
+        let user_relation = conn
+            .first_with::<GiftUserRelation>(debil::QueryBuilder::new().filter(format!(
+                "{}.{} = '{}' and {}.{} = '{}'",
+                table_name::<GiftUserRelation>(),
+                accessor!(GiftUserRelation::id),
+                gift_id.0,
+                table_name::<GiftUserRelation>(),
+                accessor!(GiftUserRelation::user_id),
+                user_id.0,
+            )))
+            .await?;
 
-        records.into_model()
+        JoinedGiftRecordUserRelationView {
+            gift,
+            user_relation,
+        }
+        .into_model()
     }
 
     async fn find_by_user_id_status(
@@ -106,15 +154,31 @@ impl IGiftRepository for GiftRepository {
     ) -> Result<Vec<Gift>, ServiceError> {
         let mut conn = self.pool.get_conn().await?;
         let records = conn
-            .load_with::<GiftRecord>(debil::QueryBuilder::new().filter(format!(
-                "{}.{} = '{}' AND {}.{} = '{}'",
-                table_name::<GiftRecord>(),
-                accessor!(GiftRecord::user_id),
-                user_id.0,
-                table_name::<GiftRecord>(),
-                accessor!(GiftRecord::status),
-                status.to_string()
-            )))
+            .load_with2::<GiftRecord, JoinedGiftRecordUserRelationView>(
+                debil::QueryBuilder::new()
+                    .inner_join(table_name::<GiftUserRelation>(), ("id", "id"))
+                    .filter(format!(
+                        "{}.{} = '{}' AND {}.{} = '{}'",
+                        table_name::<GiftRecord>(),
+                        accessor!(GiftUserRelation::user_id),
+                        user_id.0,
+                        table_name::<GiftUserRelation>(),
+                        accessor!(GiftUserRelation::status),
+                        status.to_string()
+                    ))
+                    .append_selects(vec![
+                        format!(
+                            "{}.{}",
+                            table_name::<GiftUserRelation>(),
+                            accessor!(GiftUserRelation::user_id)
+                        ),
+                        format!(
+                            "{}.{}",
+                            table_name::<GiftUserRelation>(),
+                            accessor!(GiftUserRelation::status)
+                        ),
+                    ]),
+            )
             .await?;
 
         records
@@ -125,14 +189,17 @@ impl IGiftRepository for GiftRepository {
 
     async fn create(&self, gift: Gift) -> Result<(), ServiceError> {
         let mut conn = self.pool.get_conn().await?;
-        conn.create(GiftRecord::from_model(gift)?).await?;
+        let v = JoinedGiftRecordUserRelationView::from_model(gift)?;
+        conn.create(v.gift).await?;
+        conn.create(v.user_relation).await?;
 
         Ok(())
     }
 
-    async fn save(&self, gift: Gift) -> Result<(), ServiceError> {
+    async fn save_status(&self, gift: Gift) -> Result<(), ServiceError> {
         let mut conn = self.pool.get_conn().await?;
-        conn.save(GiftRecord::from_model(gift)?).await?;
+        let v = JoinedGiftRecordUserRelationView::from_model(gift)?;
+        conn.save(v.user_relation).await?;
 
         Ok(())
     }
@@ -159,7 +226,11 @@ pub mod gift_repository_mock {
 
     #[async_trait]
     impl IGiftRepository for GiftRepositoryMock {
-        async fn find_by_id(&self, gift_id: &GiftId) -> Result<Gift, ServiceError> {
+        async fn find_by_id(
+            &self,
+            gift_id: &GiftId,
+            user_id: &UserId,
+        ) -> Result<Gift, ServiceError> {
             unimplemented!()
         }
 
@@ -177,7 +248,7 @@ pub mod gift_repository_mock {
             Ok(())
         }
 
-        async fn save(&self, gift: Gift) -> Result<(), ServiceError> {
+        async fn save_status(&self, gift: Gift) -> Result<(), ServiceError> {
             self.saved.lock().unwrap().push(gift);
 
             Ok(())

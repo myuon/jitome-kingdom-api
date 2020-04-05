@@ -26,14 +26,14 @@ pub trait IGachaEventRepository {
 
 #[async_trait]
 pub trait IGiftRepository {
-    async fn find_by_id(&self, gift_id: &GiftId) -> Result<Gift, ServiceError>;
+    async fn find_by_id(&self, gift_id: &GiftId, user_id: &UserId) -> Result<Gift, ServiceError>;
     async fn find_by_user_id_status(
         &self,
         user_id: &UserId,
         status: GiftStatus,
     ) -> Result<Vec<Gift>, ServiceError>;
     async fn create(&self, gift: Gift) -> Result<(), ServiceError>;
-    async fn save(&self, gift: Gift) -> Result<(), ServiceError>;
+    async fn save_status(&self, gift: Gift) -> Result<(), ServiceError>;
 }
 
 #[async_trait]
