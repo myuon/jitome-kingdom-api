@@ -69,15 +69,14 @@ impl JankenService {
     }
 }
 
-#[test]
+#[cfg(test)]
 mod tests {
     use super::*;
-    use crate::domain::model::{User, UserId};
     use crate::infra::janken_event_repository_mock::JankenEventRepositoryMock;
     use crate::infra::user_repository_mock::UserRepositoryStub;
 
-    #[test]
-    fn create_should_fail_if_previous_is_still_ready() {
+    #[tokio::test]
+    async fn create_should_fail_if_previous_is_still_ready() {
         let user_repo = Arc::new(UserRepositoryStub::new(Default::default()));
         let janken_repo = Arc::new(JankenEventRepositoryMock::new(vec![JankenEvent {
             id: Default::default(),

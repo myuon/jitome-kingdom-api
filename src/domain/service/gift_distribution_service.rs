@@ -64,7 +64,7 @@ impl GiftDistributionService {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::domain::model::{AuthUser, Role, UserId};
+    use crate::domain::model::{AuthUser, GiftStatus, Role, UserId};
     use crate::infra::gift_repository_mock::GiftRepositoryMock;
     use crate::infra::user_repository_mock::UserRepositoryListIdStub;
 
@@ -122,9 +122,16 @@ mod tests {
             )
             .await?;
 
+        // ギフトの作成自体は1つだけ
         let created = gift_repo.created.lock().unwrap().clone();
-        assert_eq!(created.len(), 4);
+        assert_eq!(created.len(), 1);
         assert_eq!(created[0].gift_type, GiftType::Point(100));
+
+        // user_relationがユーザー数分作られる
+        let saved = gift_repo.saved.lock().unwrap().clone();
+        assert_eq!(saved.len(), 4);
+        assert_eq!(saved[0].0, created[0].id);
+        assert_eq!(saved[0].2, GiftStatus::Ready);
 
         Ok(())
     }

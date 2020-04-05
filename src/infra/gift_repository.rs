@@ -225,7 +225,7 @@ pub mod gift_repository_mock {
 
     pub struct GiftRepositoryMock {
         pub created: Arc<Mutex<Vec<Gift>>>,
-        pub saved: Arc<Mutex<Vec<Gift>>>,
+        pub saved: Arc<Mutex<Vec<(GiftId, UserId, GiftStatus)>>>,
     }
 
     impl GiftRepositoryMock {
@@ -261,8 +261,13 @@ pub mod gift_repository_mock {
             Ok(())
         }
 
-        async fn save_status(&self, gift: Gift) -> Result<(), ServiceError> {
-            self.saved.lock().unwrap().push(gift);
+        async fn save_status(
+            &self,
+            gift_id: GiftId,
+            user_id: UserId,
+            status: GiftStatus,
+        ) -> Result<(), ServiceError> {
+            self.saved.lock().unwrap().push((gift_id, user_id, status));
 
             Ok(())
         }
@@ -271,7 +276,7 @@ pub mod gift_repository_mock {
     pub struct GiftRepositoryItemStub {
         pub item: Arc<Mutex<Gift>>,
         pub created: Arc<Mutex<Vec<Gift>>>,
-        pub saved: Arc<Mutex<Vec<Gift>>>,
+        pub saved: Arc<Mutex<Vec<(GiftId, UserId, GiftStatus)>>>,
     }
 
     impl GiftRepositoryItemStub {
@@ -314,6 +319,8 @@ pub mod gift_repository_mock {
             user_id: UserId,
             status: GiftStatus,
         ) -> Result<(), ServiceError> {
+            self.saved.lock().unwrap().push((gift_id, user_id, status));
+
             Ok(())
         }
     }

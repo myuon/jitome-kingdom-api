@@ -175,6 +175,10 @@ pub mod user_repository_mock {
             Ok(self.item.clone())
         }
 
+        async fn find_by_screen_name(&self, screen_name: &String) -> Result<User, ServiceError> {
+            Ok(self.item.clone())
+        }
+
         async fn find_by_subject(&self, subject: &str) -> Result<User, ServiceError> {
             Ok(self.item.clone())
         }
@@ -209,6 +213,10 @@ pub mod user_repository_mock {
         }
 
         async fn find_by_id(&self, user_id: &UserId) -> Result<User, ServiceError> {
+            unimplemented!()
+        }
+
+        async fn find_by_screen_name(&self, screen_name: &String) -> Result<User, ServiceError> {
             unimplemented!()
         }
 
