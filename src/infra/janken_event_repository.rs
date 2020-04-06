@@ -106,11 +106,28 @@ impl IJankenEventRepository for JankenEventRepository {
         records.into_iter().map(|r| r.into_model()).collect()
     }
 
+    async fn scan_by_status(
+        &self,
+        status: JankenStatus,
+        limit: i64,
+    ) -> Result<Vec<JankenEvent>, ServiceError> {
+        unimplemented!()
+    }
+
     async fn create(&self, janken_event: JankenEvent) -> Result<(), ServiceError> {
         let mut conn = self.pool.get_conn().await?;
         let record = JankenEventRecord::from_model(janken_event)?;
 
         conn.create(record).await?;
+
+        Ok(())
+    }
+
+    async fn save(&self, janken_event: JankenEvent) -> Result<(), ServiceError> {
+        let mut conn = self.pool.get_conn().await?;
+        let record = JankenEventRecord::from_model(janken_event)?;
+
+        conn.save(record).await?;
 
         Ok(())
     }
@@ -126,6 +143,7 @@ pub mod janken_event_repository_mock {
     pub struct JankenEventRepositoryMock {
         pub events: Vec<JankenEvent>,
         pub created: Arc<Mutex<Vec<JankenEvent>>>,
+        pub saved: Arc<Mutex<Vec<JankenEvent>>>,
     }
 
     impl JankenEventRepositoryMock {
@@ -133,6 +151,7 @@ pub mod janken_event_repository_mock {
             JankenEventRepositoryMock {
                 events,
                 created: Arc::new(Mutex::new(Vec::new())),
+                saved: Arc::new(Mutex::new(Vec::new())),
             }
         }
     }
@@ -154,8 +173,22 @@ pub mod janken_event_repository_mock {
             Ok(self.events.clone())
         }
 
+        async fn scan_by_status(
+            &self,
+            status: JankenStatus,
+            limit: i64,
+        ) -> Result<Vec<JankenEvent>, ServiceError> {
+            unimplemented!()
+        }
+
         async fn create(&self, janken_event: JankenEvent) -> Result<(), ServiceError> {
             self.created.lock().unwrap().push(janken_event);
+
+            Ok(())
+        }
+
+        async fn save(&self, janken_event: JankenEvent) -> Result<(), ServiceError> {
+            self.saved.lock().unwrap().push(janken_event);
 
             Ok(())
         }

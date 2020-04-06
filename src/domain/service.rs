@@ -18,3 +18,6 @@ pub use user_icon_upload_service::*;
 
 mod janken_service;
 pub use janken_service::*;
+
+mod janken_process_service;
+pub use janken_process_service::*;

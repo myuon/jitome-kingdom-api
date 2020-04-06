@@ -3,6 +3,12 @@ use crate::unixtime::UnixTime;
 use crate::wrapper::error::ServiceError;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
+pub enum JankenResult {
+    Win,
+    Lose,
+    Tie,
+}
+
 #[derive(Clone, Debug)]
 pub enum JankenHand {
     Rock,
@@ -33,6 +39,20 @@ impl JankenHand {
             )))),
         }
     }
+
+    pub fn fight(&self, other: &JankenHand) -> JankenResult {
+        match (self, other) {
+            (JankenHand::Rock, JankenHand::Rock) => JankenResult::Tie,
+            (JankenHand::Rock, JankenHand::Paper) => JankenResult::Lose,
+            (JankenHand::Rock, JankenHand::Scissors) => JankenResult::Win,
+            (JankenHand::Paper, JankenHand::Rock) => JankenResult::Win,
+            (JankenHand::Paper, JankenHand::Paper) => JankenResult::Tie,
+            (JankenHand::Paper, JankenHand::Scissors) => JankenResult::Lose,
+            (JankenHand::Scissors, JankenHand::Rock) => JankenResult::Lose,
+            (JankenHand::Scissors, JankenHand::Paper) => JankenResult::Win,
+            (JankenHand::Scissors, JankenHand::Scissors) => JankenResult::Tie,
+        }
+    }
 }
 
 impl Serialize for JankenHand {
@@ -55,7 +75,7 @@ impl<'de> Deserialize<'de> for JankenHand {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum JankenStatus {
     Ready,
     Won,
