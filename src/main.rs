@@ -9,7 +9,7 @@ mod web;
 mod wrapper;
 pub use wrapper::*;
 
-use crate::infra::{GiftRecord, GiftUserRelation, JWTHandler, UserRecord};
+use crate::infra::{GiftRecord, GiftUserRelation, JWTHandler, JankenEventRecord, UserRecord};
 use debil_mysql::DebilConn;
 use std::env;
 use std::sync::Arc;
@@ -18,6 +18,7 @@ async fn migrate(mut conn: DebilConn) -> Result<(), debil_mysql::Error> {
     conn.migrate::<UserRecord>().await?;
     conn.migrate::<GiftRecord>().await?;
     conn.migrate::<GiftUserRelation>().await?;
+    conn.migrate::<JankenEventRecord>().await?;
 
     Ok(())
 }
