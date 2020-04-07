@@ -1,7 +1,6 @@
 use crate::domain::interface::{IJankenEventRepository, IUserRepository};
 use crate::domain::model::{JankenEvent, JankenResult, JankenStatus};
 use crate::error::ServiceError;
-use rand::seq::SliceRandom;
 use std::sync::Arc;
 
 pub struct JankenProcessService {
@@ -38,7 +37,6 @@ impl JankenProcessService {
                     self.janken_repo.save(loser.clone()).await?;
 
                     // 勝ったほうは+5, 負けたほうは-5する
-                    // この辺雑にやるとまずいのでトランザクション張ったほうがいい
                     let mut winner_user = self.user_repo.find_by_id(&winner.user_id).await?;
                     winner_user.point += 5;
                     self.user_repo.save(winner_user).await?;
@@ -55,13 +53,16 @@ impl JankenProcessService {
     }
 
     pub async fn run(&self) -> Result<(), ServiceError> {
-        let mut events = self
-            .janken_repo
-            .scan_by_status(JankenStatus::Ready, 100)
-            .await?;
-        events.shuffle(&mut rand::thread_rng());
+        loop {
+            let events = self
+                .janken_repo
+                .scan_by_status(JankenStatus::Ready, 100)
+                .await?;
+            self.process(events).await?;
 
-        Ok(())
+            // 5分くらい待つ
+            tokio::time::delay_for(tokio::time::Duration::from_secs(300)).await;
+        }
     }
 }
 

@@ -1,10 +1,10 @@
 use crate::domain::service::{
-    GachaService, GiftDistributionService, GiftService, UserIconUploadService, UserMeService,
-    UserService,
+    GachaService, GiftDistributionService, GiftService, JankenService, UserIconUploadService,
+    UserMeService, UserService,
 };
 use crate::infra::{
-    ConnPool, DynamoClient, GachaEventRepository, GiftRepository, JWTHandler, S3Client,
-    UserIconUploader, UserRepository,
+    ConnPool, DynamoClient, GachaEventRepository, GiftRepository, JWTHandler,
+    JankenEventRepository, S3Client, UserIconUploader, UserRepository,
 };
 use std::sync::Arc;
 
@@ -24,6 +24,7 @@ pub struct Infras {
     pub gacha_event_repository: Arc<GachaEventRepository>,
     pub gift_repository: Arc<GiftRepository>,
     pub user_icon_uploader: Arc<UserIconUploader>,
+    pub janken_repository: Arc<JankenEventRepository>,
 }
 
 pub struct Services {
@@ -33,6 +34,7 @@ pub struct Services {
     pub gift_service: GiftService,
     pub gift_distribution_service: GiftDistributionService,
     pub user_icon_upload_service: UserIconUploadService,
+    pub janken_service: JankenService,
 }
 
 pub struct App {
@@ -58,6 +60,7 @@ pub fn new(config: Config) -> App {
             s3_client.clone(),
             config.user_icon_upload_bucket,
         )),
+        janken_repository: Arc::new(JankenEventRepository::new(conn_pool.clone())),
     };
     let services = Services {
         user_me_service: UserMeService::new(infras.user_repository.clone()),
@@ -77,6 +80,10 @@ pub fn new(config: Config) -> App {
         user_icon_upload_service: UserIconUploadService::new(
             infras.user_repository.clone(),
             infras.user_icon_uploader.clone(),
+        ),
+        janken_service: JankenService::new(
+            infras.user_repository.clone(),
+            infras.janken_repository.clone(),
         ),
     };
 

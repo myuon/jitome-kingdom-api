@@ -59,7 +59,7 @@ pub trait IJankenEventRepository {
     async fn scan_by_status(
         &self,
         status: JankenStatus,
-        limit: i64,
+        limit: i32,
     ) -> Result<Vec<JankenEvent>, ServiceError>;
     async fn create(&self, janken_event: JankenEvent) -> Result<(), ServiceError>;
     async fn save(&self, janken_event: JankenEvent) -> Result<(), ServiceError>;

@@ -109,9 +109,22 @@ impl IJankenEventRepository for JankenEventRepository {
     async fn scan_by_status(
         &self,
         status: JankenStatus,
-        limit: i64,
+        limit: i32,
     ) -> Result<Vec<JankenEvent>, ServiceError> {
-        unimplemented!()
+        let mut conn = self.pool.get_conn().await?;
+        let records = conn
+            .load_with::<JankenEventRecord>(
+                debil::QueryBuilder::new()
+                    .filter(format!(
+                        "{} = '{}'",
+                        accessor!(JankenEventRecord::status),
+                        status.to_string()
+                    ))
+                    .limit(limit),
+            )
+            .await?;
+
+        records.into_iter().map(|rec| rec.into_model()).collect()
     }
 
     async fn create(&self, janken_event: JankenEvent) -> Result<(), ServiceError> {

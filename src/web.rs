@@ -70,6 +70,7 @@ pub fn handlers(app: App) -> server::App<WebContext> {
             http::Method::POST,
             api_admin_distribute_gift,
         )
+        .route("/janken", http::Method::POST, api_create_janken)
 }
 
 async fn api_hello(
@@ -262,6 +263,21 @@ async fn api_admin_distribute_gift(
             .gift_distribution_service
             .distribute_point(auth, body)
             .await
+    })
+    .await
+}
+
+async fn api_create_janken(
+    req: server::Request,
+    ps: server::Params,
+    ctx: Arc<WebContext>,
+) -> server::Response {
+    let auth = WebContext::get_authorization(&req, ctx.clone());
+
+    server::response_from_async(async {
+        let body = WebContext::read_body(req.into_body()).await?;
+
+        ctx.app.services.janken_service.create(auth, body).await
     })
     .await
 }
