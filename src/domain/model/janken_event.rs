@@ -135,6 +135,8 @@ pub struct JankenEvent {
     pub created_at: UnixTime,
     pub status: JankenStatus,
     pub point: u64,
+    pub opponent_user_id: Option<UserId>,
+    pub opponent_user_screen_name: Option<String>,
 }
 
 impl JankenEvent {
@@ -146,6 +148,13 @@ impl JankenEvent {
             created_at: UnixTime::now(),
             status: JankenStatus::Ready,
             point,
+            opponent_user_id: None,
+            opponent_user_screen_name: None,
         }
+    }
+
+    pub fn set_opponent(&mut self, user_id: UserId, screen_name: Option<String>) {
+        self.opponent_user_id = Some(user_id);
+        self.opponent_user_screen_name = screen_name;
     }
 }

@@ -92,6 +92,8 @@ mod tests {
             created_at: Default::default(),
             status: JankenStatus::Ready,
             point: 5,
+            opponent_user_id: None,
+            opponent_user_screen_name: None,
         }]));
         let service = JankenService {
             user_repo: user_repo.clone(),

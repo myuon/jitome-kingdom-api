@@ -25,6 +25,10 @@ pub struct JankenEventRecord {
     #[sql(size = 50)]
     status: String,
     point: u64,
+    #[sql(size = 100)]
+    opponent_user_id: Option<String>,
+    #[sql(size = 100)]
+    opponent_screen_name: Option<String>,
 }
 
 impl JankenEventRecord {
@@ -36,6 +40,8 @@ impl JankenEventRecord {
             created_at: model.created_at.0,
             status: model.status.to_string(),
             point: model.point,
+            opponent_user_id: model.opponent_user_id.map(|v| v.0),
+            opponent_screen_name: model.opponent_user_screen_name,
         })
     }
 
@@ -47,6 +53,8 @@ impl JankenEventRecord {
             created_at: UnixTime(self.created_at),
             status: JankenStatus::from_str(&self.status)?,
             point: self.point,
+            opponent_user_id: self.opponent_user_id.map(|v| UserId(v)),
+            opponent_user_screen_name: self.opponent_screen_name,
         })
     }
 }

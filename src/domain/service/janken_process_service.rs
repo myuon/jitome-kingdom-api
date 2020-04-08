@@ -1,4 +1,4 @@
-use crate::domain::interface::{IGiftRepository, IJankenEventRepository};
+use crate::domain::interface::{IGiftRepository, IJankenEventRepository, IUserRepository};
 use crate::domain::model::{Gift, GiftType, JankenEvent, JankenResult, JankenStatus};
 use crate::error::ServiceError;
 use crate::wrapper::unixtime::UnixTime;
@@ -7,16 +7,19 @@ use std::sync::Arc;
 pub struct JankenProcessService {
     janken_repo: Arc<dyn IJankenEventRepository + Sync + Send>,
     gift_repo: Arc<dyn IGiftRepository + Sync + Send>,
+    user_repo: Arc<dyn IUserRepository + Sync + Send>,
 }
 
 impl JankenProcessService {
     pub fn new(
         janken_repo: Arc<dyn IJankenEventRepository + Sync + Send>,
         gift_repo: Arc<dyn IGiftRepository + Sync + Send>,
+        user_repo: Arc<dyn IUserRepository + Sync + Send>,
     ) -> Self {
         JankenProcessService {
             janken_repo,
             gift_repo,
+            user_repo,
         }
     }
 
@@ -53,6 +56,12 @@ impl JankenProcessService {
 
                     winner.status = JankenStatus::Won;
                     loser.status = JankenStatus::Lost;
+
+                    let winner_user = self.user_repo.find_by_id(&winner.user_id).await?;
+                    let loser_user = self.user_repo.find_by_id(&loser.user_id).await?;
+
+                    winner.set_opponent(loser_user.id, loser_user.screen_name);
+                    loser.set_opponent(winner_user.id, winner_user.screen_name);
 
                     // トランザクション張ろうね
                     self.janken_repo.save(winner.clone()).await?;
