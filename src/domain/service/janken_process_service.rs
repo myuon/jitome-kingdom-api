@@ -1,6 +1,7 @@
-use crate::domain::interface::{IGiftRepository, IJankenEventRepository, IUserRepository};
+use crate::domain::interface::{IGiftRepository, IJankenEventRepository};
 use crate::domain::model::{Gift, GiftType, JankenEvent, JankenResult, JankenStatus};
 use crate::error::ServiceError;
+use crate::wrapper::unixtime::UnixTime;
 use std::sync::Arc;
 
 pub struct JankenProcessService {
@@ -20,7 +21,28 @@ impl JankenProcessService {
     }
 
     pub async fn process(&self, events: Vec<JankenEvent>) -> Result<(), ServiceError> {
-        for chunk in events.chunks(2) {
+        let mut events_filtered = Vec::new();
+        for event in events {
+            // タイムアウトを6時間にする
+            if (UnixTime::now().datetime_jst() - event.created_at.datetime_jst())
+                >= chrono::Duration::hours(6)
+            {
+                let gift = Gift::new(
+                    GiftType::Point(event.point * 2),
+                    "じゃんけんで不戦勝となったのでその報酬です".to_string(),
+                );
+                self.gift_repo.create(gift.clone()).await?;
+                self.gift_repo
+                    .save_status(gift.id, event.user_id, gift.status)
+                    .await?;
+
+                continue;
+            } else {
+                events_filtered.push(event);
+            }
+        }
+
+        for chunk in events_filtered.chunks(2) {
             match chunk {
                 [event1, event2] => {
                     let (mut winner, mut loser) = match event1.hand.fight(&event2.hand) {
@@ -40,7 +62,7 @@ impl JankenProcessService {
                     // 負けた方は、すでにポイントを払っているため何もしない
                     let gift = Gift::new(
                         GiftType::Point(event1.point + event2.point),
-                        "じゃんけんに勝った報酬です".to_string(),
+                        format!("じゃんけんに勝った報酬です"),
                     );
                     self.gift_repo.create(gift.clone()).await?;
                     self.gift_repo
@@ -88,8 +110,19 @@ mod tests {
         let event_scissors = JankenEventId::new();
 
         let user_winner = UserId::new();
+        let user_timed_out = UserId::new();
+
         service
             .process(vec![
+                // タイムアウトになるもの
+                JankenEvent {
+                    id: JankenEventId::new(),
+                    user_id: user_timed_out.clone(),
+                    hand: JankenHand::Scissors,
+                    created_at: UnixTime(1),
+                    status: JankenStatus::Ready,
+                    point: 5,
+                },
                 JankenEvent {
                     id: event_rock.clone(),
                     user_id: UserId::new(),
@@ -146,13 +179,15 @@ mod tests {
         assert_eq!(events[1].status, JankenStatus::Lost);
 
         let gifts = gift_repo.created.lock().unwrap().clone();
-        assert_eq!(gifts.len(), 1);
+        assert_eq!(gifts.len(), 2);
         assert_eq!(gifts[0].gift_type, GiftType::Point(10));
+        assert_eq!(gifts[1].gift_type, GiftType::Point(10));
 
         let statuses = gift_repo.saved.lock().unwrap().clone();
-        assert_eq!(statuses.len(), 1);
-        assert_eq!(statuses[0].1, user_winner.clone());
-        assert_eq!(statuses[0].2, GiftStatus::Ready);
+        assert_eq!(statuses.len(), 2);
+        assert_eq!(statuses[0].1, user_timed_out.clone());
+        assert_eq!(statuses[1].1, user_winner.clone());
+        assert_eq!(statuses[1].2, GiftStatus::Ready);
 
         Ok(())
     }
