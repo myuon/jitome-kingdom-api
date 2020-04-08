@@ -2,6 +2,7 @@ use crate::domain::interface::{IGiftRepository, IJankenEventRepository, IUserRep
 use crate::domain::model::{Gift, GiftType, JankenEvent, JankenResult, JankenStatus};
 use crate::error::ServiceError;
 use crate::wrapper::unixtime::UnixTime;
+use rand::seq::SliceRandom;
 use std::sync::Arc;
 
 pub struct JankenProcessService {
@@ -87,10 +88,14 @@ impl JankenProcessService {
 
     pub async fn run(&self) -> Result<(), ServiceError> {
         loop {
-            let events = self
+            let mut events = self
                 .janken_repo
                 .scan_by_status(JankenStatus::Ready, 100)
                 .await?;
+
+            // あいこはスルーされる仕組みなので、適当にランダマイズしないと延々待たされる待たされる可能性がある
+            events.shuffle(&mut rand::thread_rng());
+
             self.process(events).await?;
 
             // 5分くらい待つ
@@ -112,7 +117,9 @@ mod tests {
     async fn test_process() -> Result<(), ServiceError> {
         let janken_repo = Arc::new(JankenEventRepositoryMock::new(Vec::new()));
         let gift_repo = Arc::new(GiftRepositoryMock::new());
-        let service = JankenProcessService::new(janken_repo.clone(), gift_repo.clone());
+        let user_repo = Arc::new(UserRepositoryStub::new(Default::default()));
+        let service =
+            JankenProcessService::new(janken_repo.clone(), gift_repo.clone(), user_repo.clone());
 
         let event_rock = JankenEventId::new();
         let event_paper = JankenEventId::new();
@@ -131,6 +138,8 @@ mod tests {
                     created_at: UnixTime(1),
                     status: JankenStatus::Ready,
                     point: 5,
+                    opponent_user_id: None,
+                    opponent_user_screen_name: None,
                 },
                 JankenEvent {
                     id: event_rock.clone(),
@@ -139,6 +148,8 @@ mod tests {
                     created_at: UnixTime::now(),
                     status: JankenStatus::Ready,
                     point: 5,
+                    opponent_user_id: None,
+                    opponent_user_screen_name: None,
                 },
                 JankenEvent {
                     id: event_paper.clone(),
@@ -147,6 +158,8 @@ mod tests {
                     created_at: UnixTime::now(),
                     status: JankenStatus::Ready,
                     point: 5,
+                    opponent_user_id: None,
+                    opponent_user_screen_name: None,
                 },
                 JankenEvent {
                     id: event_scissors.clone(),
@@ -155,6 +168,8 @@ mod tests {
                     created_at: UnixTime::now(),
                     status: JankenStatus::Ready,
                     point: 5,
+                    opponent_user_id: None,
+                    opponent_user_screen_name: None,
                 },
                 JankenEvent {
                     id: JankenEventId::new(),
@@ -163,6 +178,8 @@ mod tests {
                     created_at: UnixTime::now(),
                     status: JankenStatus::Ready,
                     point: 5,
+                    opponent_user_id: None,
+                    opponent_user_screen_name: None,
                 },
                 JankenEvent {
                     id: JankenEventId::new(),
@@ -171,6 +188,8 @@ mod tests {
                     created_at: UnixTime::now(),
                     status: JankenStatus::Ready,
                     point: 5,
+                    opponent_user_id: None,
+                    opponent_user_screen_name: None,
                 },
             ])
             .await?;
