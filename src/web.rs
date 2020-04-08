@@ -71,6 +71,7 @@ pub fn handlers(app: App) -> server::App<WebContext> {
             api_admin_distribute_gift,
         )
         .route("/janken", http::Method::POST, api_create_janken)
+        .route("/janken", http::Method::GET, api_list_janken_events)
 }
 
 async fn api_hello(
@@ -280,4 +281,14 @@ async fn api_create_janken(
         ctx.app.services.janken_service.create(auth, body).await
     })
     .await
+}
+
+async fn api_list_janken_events(
+    req: server::Request,
+    ps: server::Params,
+    ctx: Arc<WebContext>,
+) -> server::Response {
+    let auth = WebContext::get_authorization(&req, ctx.clone());
+
+    server::response_from_async(ctx.app.services.janken_service.find_by_user_id(auth)).await
 }

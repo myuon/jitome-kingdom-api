@@ -32,7 +32,7 @@ impl JankenEventRecord {
             id: model.id.0,
             user_id: model.user_id.0,
             hand: model.hand.to_string(),
-            created_at: 0,
+            created_at: model.created_at.0,
             status: model.status.to_string(),
         })
     }
