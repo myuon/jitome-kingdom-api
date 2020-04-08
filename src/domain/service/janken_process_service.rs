@@ -27,9 +27,9 @@ impl JankenProcessService {
     pub async fn process(&self, events: Vec<JankenEvent>) -> Result<(), ServiceError> {
         let mut events_filtered = Vec::new();
         for event in events {
-            // タイムアウトを6時間にする
+            // タイムアウトを12時間にする
             if (UnixTime::now().datetime_jst() - event.created_at.datetime_jst())
-                >= chrono::Duration::hours(6)
+                >= chrono::Duration::hours(12)
             {
                 let gift = Gift::new(
                     GiftType::Point(event.point * 2),
