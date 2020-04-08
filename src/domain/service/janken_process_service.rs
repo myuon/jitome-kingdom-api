@@ -27,9 +27,9 @@ impl JankenProcessService {
     pub async fn process(&self, events: Vec<JankenEvent>) -> Result<(), ServiceError> {
         let mut events_filtered = Vec::new();
         for event in events {
-            // タイムアウトを12時間にする
+            // タイムアウトを設定
             if (UnixTime::now().datetime_jst() - event.created_at.datetime_jst())
-                >= chrono::Duration::hours(12)
+                >= chrono::Duration::hours(8)
             {
                 let gift = Gift::new(
                     GiftType::Point(event.point * 2),
@@ -98,8 +98,8 @@ impl JankenProcessService {
 
             self.process(events).await?;
 
-            // 5分くらい待つ
-            tokio::time::delay_for(tokio::time::Duration::from_secs(300)).await;
+            // 30秒くらい待つ
+            tokio::time::delay_for(tokio::time::Duration::from_secs(30)).await;
         }
     }
 }
