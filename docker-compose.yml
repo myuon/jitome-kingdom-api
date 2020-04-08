@@ -33,7 +33,5 @@ services:
       EXECUTION_TASK: janken
     env_file:
       - ./.env
-    ports:
-      - 80:1234
     depends_on:
       - db
