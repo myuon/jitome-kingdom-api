@@ -189,7 +189,7 @@ pub mod janken_event_repository_mock {
         async fn scan_by_status(
             &self,
             status: JankenStatus,
-            limit: i64,
+            limit: i32,
         ) -> Result<Vec<JankenEvent>, ServiceError> {
             unimplemented!()
         }

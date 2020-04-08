@@ -26,3 +26,14 @@ services:
       - 80:1234
     depends_on:
       - db
+  app_janken_task:
+    image: 941528793676.dkr.ecr.ap-northeast-1.amazonaws.com/jitome-kingdom-api/prod:latest
+    restart: always
+    environment:
+      EXECUTION_TASK: janken
+    env_file:
+      - ./.env
+    ports:
+      - 80:1234
+    depends_on:
+      - db

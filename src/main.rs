@@ -33,24 +33,37 @@ async fn main() {
     let public_key = JWTHandler::load_from_jwk(&env::var("JWK_URL").unwrap()).await;
     let gacha_event_repository_table_name = env::var("GACHA_EVENT_REPOSITORY_TABLE_NAME").unwrap();
     let user_icon_upload_bucket = env::var("USER_ICON_UPLOAD_BUCKET").unwrap();
-
-    let mut conn = debil_mysql::DebilConn::from_conn(
-        mysql_async::Conn::from_url(db_url.clone()).await.unwrap(),
-    );
-    migrate(conn).await.expect("Error in migration");
+    let exec_task = env::var("EXECUTION_TASK");
 
     let app = initializer::new(initializer::Config {
         aws_region: rusoto_core::Region::ApNortheast1,
-        db_url,
+        db_url: db_url.clone(),
         public_key: Arc::new(public_key),
         gacha_event_repository_table_name,
         user_icon_upload_bucket,
     });
 
-    server::HttpServer::new()
-        .bind(([0, 0, 0, 0], 1234).into())
-        .service(web::handlers(app))
-        .run()
-        .await
-        .unwrap();
+    match exec_task {
+        Ok(task) => match task.as_str() {
+            "janken" => {
+                if let Err(err) = app.services.janken_process_service.run().await {
+                    panic!("{:?}", err);
+                }
+            }
+            _ => panic!("Unsupported task: {}", task),
+        },
+        Err(_) => {
+            let mut conn = debil_mysql::DebilConn::from_conn(
+                mysql_async::Conn::from_url(db_url.clone()).await.unwrap(),
+            );
+            migrate(conn).await.expect("Error in migration");
+
+            server::HttpServer::new()
+                .bind(([0, 0, 0, 0], 1234).into())
+                .service(web::handlers(app))
+                .run()
+                .await
+                .unwrap();
+        }
+    }
 }

@@ -109,10 +109,25 @@ mod tests {
                     created_at: UnixTime::now(),
                     status: JankenStatus::Ready,
                 },
+                JankenEvent {
+                    id: JankenEventId::new(),
+                    user_id: UserId::new(),
+                    hand: JankenHand::Scissors,
+                    created_at: UnixTime::now(),
+                    status: JankenStatus::Ready,
+                },
+                JankenEvent {
+                    id: JankenEventId::new(),
+                    user_id: UserId::new(),
+                    hand: JankenHand::Scissors,
+                    created_at: UnixTime::now(),
+                    status: JankenStatus::Ready,
+                },
             ])
             .await?;
 
         let events = janken_repo.saved.lock().unwrap().clone();
+        // あいこの場合は何も起きないので決着が着くのは2つ
         assert_eq!(events.len(), 2);
 
         // Paperのイベントが勝つ
