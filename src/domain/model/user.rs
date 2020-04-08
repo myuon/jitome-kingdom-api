@@ -36,6 +36,10 @@ impl User {
         self.point += p;
     }
 
+    pub fn subtract_point(&mut self, p: u64) {
+        self.point -= p;
+    }
+
     pub fn update(&mut self, screen_name: String, display_name: String, picture_url: Url) {
         self.screen_name = Some(screen_name);
         self.display_name = display_name;

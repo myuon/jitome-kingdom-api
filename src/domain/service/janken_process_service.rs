@@ -1,21 +1,21 @@
-use crate::domain::interface::{IJankenEventRepository, IUserRepository};
-use crate::domain::model::{JankenEvent, JankenResult, JankenStatus};
+use crate::domain::interface::{IGiftRepository, IJankenEventRepository, IUserRepository};
+use crate::domain::model::{Gift, GiftType, JankenEvent, JankenResult, JankenStatus};
 use crate::error::ServiceError;
 use std::sync::Arc;
 
 pub struct JankenProcessService {
     janken_repo: Arc<dyn IJankenEventRepository + Sync + Send>,
-    user_repo: Arc<dyn IUserRepository + Sync + Send>,
+    gift_repo: Arc<dyn IGiftRepository + Sync + Send>,
 }
 
 impl JankenProcessService {
     pub fn new(
         janken_repo: Arc<dyn IJankenEventRepository + Sync + Send>,
-        user_repo: Arc<dyn IUserRepository + Sync + Send>,
+        gift_repo: Arc<dyn IGiftRepository + Sync + Send>,
     ) -> Self {
         JankenProcessService {
             janken_repo,
-            user_repo,
+            gift_repo,
         }
     }
 
@@ -36,14 +36,16 @@ impl JankenProcessService {
                     self.janken_repo.save(winner.clone()).await?;
                     self.janken_repo.save(loser.clone()).await?;
 
-                    // 勝ったほうは+5, 負けたほうは-5する
-                    let mut winner_user = self.user_repo.find_by_id(&winner.user_id).await?;
-                    winner_user.point += 5;
-                    self.user_repo.save(winner_user).await?;
-
-                    let mut loser_user = self.user_repo.find_by_id(&loser.user_id).await?;
-                    loser_user.point -= 5;
-                    self.user_repo.save(loser_user).await?;
+                    // 勝った方にはギフトとして合計ポイントを送る
+                    // 負けた方は、すでにポイントを払っているため何もしない
+                    let gift = Gift::new(
+                        GiftType::Point(event1.point + event2.point),
+                        "じゃんけんに勝った報酬です".to_string(),
+                    );
+                    self.gift_repo.create(gift.clone()).await?;
+                    self.gift_repo
+                        .save_status(gift.id, winner.user_id, gift.status)
+                        .await?;
                 }
                 _ => break,
             }
@@ -69,7 +71,8 @@ impl JankenProcessService {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::domain::model::{JankenEventId, JankenHand, User, UserId};
+    use crate::domain::model::{GiftStatus, JankenEventId, JankenHand, User, UserId};
+    use crate::infra::gift_repository_mock::GiftRepositoryMock;
     use crate::infra::janken_event_repository_mock::JankenEventRepositoryMock;
     use crate::infra::user_repository_mock::UserRepositoryStub;
     use crate::unixtime::UnixTime;
@@ -77,15 +80,14 @@ mod tests {
     #[tokio::test]
     async fn test_process() -> Result<(), ServiceError> {
         let janken_repo = Arc::new(JankenEventRepositoryMock::new(Vec::new()));
-        let user_repo = Arc::new(UserRepositoryStub::new(User {
-            point: 100,
-            ..Default::default()
-        }));
-        let service = JankenProcessService::new(janken_repo.clone(), user_repo.clone());
+        let gift_repo = Arc::new(GiftRepositoryMock::new());
+        let service = JankenProcessService::new(janken_repo.clone(), gift_repo.clone());
 
         let event_rock = JankenEventId::new();
         let event_paper = JankenEventId::new();
         let event_scissors = JankenEventId::new();
+
+        let user_winner = UserId::new();
         service
             .process(vec![
                 JankenEvent {
@@ -94,13 +96,15 @@ mod tests {
                     hand: JankenHand::Rock,
                     created_at: UnixTime::now(),
                     status: JankenStatus::Ready,
+                    point: 5,
                 },
                 JankenEvent {
                     id: event_paper.clone(),
-                    user_id: UserId::new(),
+                    user_id: user_winner.clone(),
                     hand: JankenHand::Paper,
                     created_at: UnixTime::now(),
                     status: JankenStatus::Ready,
+                    point: 5,
                 },
                 JankenEvent {
                     id: event_scissors.clone(),
@@ -108,6 +112,7 @@ mod tests {
                     hand: JankenHand::Scissors,
                     created_at: UnixTime::now(),
                     status: JankenStatus::Ready,
+                    point: 5,
                 },
                 JankenEvent {
                     id: JankenEventId::new(),
@@ -115,6 +120,7 @@ mod tests {
                     hand: JankenHand::Scissors,
                     created_at: UnixTime::now(),
                     status: JankenStatus::Ready,
+                    point: 5,
                 },
                 JankenEvent {
                     id: JankenEventId::new(),
@@ -122,6 +128,7 @@ mod tests {
                     hand: JankenHand::Scissors,
                     created_at: UnixTime::now(),
                     status: JankenStatus::Ready,
+                    point: 5,
                 },
             ])
             .await?;
@@ -138,10 +145,14 @@ mod tests {
         assert_eq!(events[1].id, event_rock);
         assert_eq!(events[1].status, JankenStatus::Lost);
 
-        let users = user_repo.saved.lock().unwrap().clone();
-        assert_eq!(users.len(), 2);
-        assert_eq!(users[0].point, 105);
-        assert_eq!(users[1].point, 95);
+        let gifts = gift_repo.created.lock().unwrap().clone();
+        assert_eq!(gifts.len(), 1);
+        assert_eq!(gifts[0].gift_type, GiftType::Point(10));
+
+        let statuses = gift_repo.saved.lock().unwrap().clone();
+        assert_eq!(statuses.len(), 1);
+        assert_eq!(statuses[0].1, user_winner.clone());
+        assert_eq!(statuses[0].2, GiftStatus::Ready);
 
         Ok(())
     }

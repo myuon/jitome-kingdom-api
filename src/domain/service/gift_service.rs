@@ -87,7 +87,7 @@ impl GiftService {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::domain::model::{GiftStatus, User, UserId};
+    use crate::domain::model::{GiftStatus, User};
     use crate::infra::gift_repository_mock::GiftRepositoryItemStub;
     use crate::infra::user_repository_mock::UserRepositoryStub;
 

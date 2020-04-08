@@ -134,16 +134,18 @@ pub struct JankenEvent {
     pub hand: JankenHand,
     pub created_at: UnixTime,
     pub status: JankenStatus,
+    pub point: u64,
 }
 
 impl JankenEvent {
-    pub fn new(user_id: UserId, hand: JankenHand) -> JankenEvent {
+    pub fn new(user_id: UserId, hand: JankenHand, point: u64) -> JankenEvent {
         JankenEvent {
             id: JankenEventId::new(),
             user_id,
             hand,
             created_at: UnixTime::now(),
             status: JankenStatus::Ready,
+            point,
         }
     }
 }

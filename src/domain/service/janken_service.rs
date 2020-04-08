@@ -31,10 +31,12 @@ impl JankenService {
         input: JankenCreateInput,
     ) -> Result<(), ServiceError> {
         let auth_user = auth.require_auth()?;
-        let user = self.user_repo.find_by_subject(&auth_user.subject).await?;
+        let mut user = self.user_repo.find_by_subject(&auth_user.subject).await?;
+
+        let bet_point = 5;
 
         // みょんポイントが5ポイント未満だと出来ない
-        if user.point < 5 {
+        if user.point < bet_point {
             return Err(ServiceError::bad_request(failure::err_msg(
                 "You do not have enough myon point",
             )));
@@ -51,7 +53,12 @@ impl JankenService {
             )));
         }
 
-        let janken = JankenEvent::new(user.id, input.hand);
+        // ここトランザクション
+        // 5ポイント払って参加する
+        user.subtract_point(bet_point);
+        self.user_repo.save(user.clone()).await?;
+
+        let janken = JankenEvent::new(user.id, input.hand, bet_point);
         self.janken_repo.create(janken).await?;
 
         Ok(())
@@ -84,6 +91,7 @@ mod tests {
             hand: JankenHand::Rock,
             created_at: Default::default(),
             status: JankenStatus::Ready,
+            point: 5,
         }]));
         let service = JankenService {
             user_repo: user_repo.clone(),

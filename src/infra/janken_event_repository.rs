@@ -24,6 +24,7 @@ pub struct JankenEventRecord {
     created_at: i64,
     #[sql(size = 50)]
     status: String,
+    point: u64,
 }
 
 impl JankenEventRecord {
@@ -34,6 +35,7 @@ impl JankenEventRecord {
             hand: model.hand.to_string(),
             created_at: model.created_at.0,
             status: model.status.to_string(),
+            point: model.point,
         })
     }
 
@@ -44,6 +46,7 @@ impl JankenEventRecord {
             hand: JankenHand::from_str(&self.hand)?,
             created_at: UnixTime(self.created_at),
             status: JankenStatus::from_str(&self.status)?,
+            point: self.point,
         })
     }
 }

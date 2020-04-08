@@ -88,7 +88,7 @@ pub fn new(config: Config) -> App {
         ),
         janken_process_service: JankenProcessService::new(
             infras.janken_repository.clone(),
-            infras.user_repository.clone(),
+            infras.gift_repository.clone(),
         ),
     };
 
