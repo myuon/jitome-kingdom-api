@@ -156,7 +156,8 @@ impl IUserRepository for UserRepository {
         let rows = conn
             .sql_exec(
                 format!(
-                    "UPDATE {} SET {} = {}, {} = {} WHERE {} = '{}' AND {} = {}",
+                    // last_tried_daily_gachaがNULLも許容する必要がある
+                    "UPDATE {} SET {} = {}, {} = {} WHERE {} = '{}' AND ({} = {} OR {} IS NULL)",
                     table_name::<UserRecord>(),
                     accessor!(UserRecord::point),
                     record.point,
@@ -166,6 +167,7 @@ impl IUserRepository for UserRepository {
                     record.id,
                     accessor!(UserRecord::last_tried_daily_gacha),
                     daily_gacha_timestamp.0,
+                    accessor!(UserRecord::last_tried_daily_gacha),
                 ),
                 debil::Params::new(),
             )
