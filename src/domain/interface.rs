@@ -2,6 +2,7 @@ use crate::base64::Base64;
 use crate::domain::model::{
     GachaEvent, GachaType, Gift, GiftId, GiftStatus, JankenEvent, JankenStatus, User, UserId,
 };
+use crate::unixtime::UnixTime;
 use crate::url::Url;
 use crate::wrapper::error::ServiceError;
 use async_trait::async_trait;
@@ -14,6 +15,11 @@ pub trait IUserRepository {
     async fn find_by_subject(&self, subject: &str) -> Result<User, ServiceError>;
     async fn create(&self, user: User) -> Result<(), ServiceError>;
     async fn save(&self, user: User) -> Result<(), ServiceError>;
+    async fn conditional_save_point(
+        &self,
+        user: User,
+        daily_gacha_timestamp: UnixTime,
+    ) -> Result<(), ServiceError>;
 }
 
 #[async_trait]

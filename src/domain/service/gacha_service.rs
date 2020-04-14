@@ -69,15 +69,10 @@ impl GachaService {
             Err(err) if err.status_code == http::StatusCode::NOT_FOUND => Ok(None),
             r => r.map(|e| Some(e)),
         }?;
-        let is_available = latest
-            .clone()
-            .map(|r| r.is_available_at(UnixTime::now()))
-            // 最後のガチャ記録が存在しなければavailableとする
-            .unwrap_or(true);
 
         Ok(DailyGachaRecord {
             latest,
-            is_available,
+            is_available: user.is_daily_gacha_available_at(UnixTime::now()),
             next_gacha_time: UnixTime::now(),
         })
     }
@@ -87,23 +82,21 @@ impl GachaService {
         let mut user = self.user_repo.find_by_subject(&auth_user.subject).await?;
         let user_cloned = user.clone();
 
-        match self
-            .gacha_repo
-            .find_by_user_type(&user.id, &GachaType::Daily)
-            .await
-        {
-            Ok(event) if !event.is_available_at(UnixTime::now()) => Err(ServiceError::bad_request(
-                failure::err_msg("Daily Gacha Rate Limit Exceeded"),
-            )),
-            Err(err) if err.status_code == http::StatusCode::NOT_FOUND => Ok(()),
-            Ok(_) => Ok(()),
-            Err(err) => Err(err),
-        }?;
+        if !user.is_daily_gacha_available_at(UnixTime::now()) {
+            return Err(ServiceError::bad_request(failure::err_msg(
+                "Daily Gacha Rate Limit Exceeded",
+            )));
+        }
 
         // 終端の16は含まない
         let n = RandomGen::range(5, 16);
         user.add_point(n);
-        self.user_repo.save(user.clone()).await?;
+        let prev_timestamp = user.update_daily_gacha_timestamp();
+
+        // ここでデイリーガチャのタイムスタンプでconditional writeを行うことで競合を防ぐ
+        self.user_repo
+            .conditional_save_point(user.clone(), prev_timestamp)
+            .await?;
 
         let event = GachaEvent {
             id: GachaEventId::new(),
@@ -142,6 +135,7 @@ mod test {
     use crate::domain::model::{User, UserId};
     use crate::infra::gacha_event_repository_mock::*;
     use crate::infra::user_repository_mock::*;
+    use crate::infra::GachaEventRepository;
 
     #[tokio::test]
     async fn gacha_available_with_no_records() -> Result<(), ServiceError> {
@@ -150,6 +144,7 @@ mod test {
             Arc::new(GachaEventRepositoryStub::new_empty()),
             Arc::new(UserRepositoryStub::new(User {
                 id: user_id.clone(),
+                last_tried_daily_gacha: UnixTime(0),
                 ..Default::default()
             })),
         );
@@ -175,6 +170,7 @@ mod test {
             Arc::new(GachaEventRepositoryStub::new(event.clone())),
             Arc::new(UserRepositoryStub::new(User {
                 id: user_id.clone(),
+                last_tried_daily_gacha: UnixTime(0),
                 ..Default::default()
             })),
         );
@@ -199,6 +195,7 @@ mod test {
             })),
             Arc::new(UserRepositoryStub::new(User {
                 id: user_id.clone(),
+                last_tried_daily_gacha: UnixTime::now(),
                 ..Default::default()
             })),
         );
@@ -207,6 +204,25 @@ mod test {
             .get_daily_gacha_record(Authorization::new(Ok(Default::default())))
             .await?;
         assert!(!record.is_available);
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn cannot_try_gacha_if_already_tried_in_same_day() -> Result<(), ServiceError> {
+        let service = GachaService::new(
+            Arc::new(GachaEventRepositoryStub::new(GachaEvent::default())),
+            Arc::new(UserRepositoryStub::new(User {
+                last_tried_daily_gacha: UnixTime::now(),
+                ..Default::default()
+            })),
+        );
+
+        let err = service
+            .try_daily(Authorization::new(Ok(Default::default())))
+            .await
+            .expect_err("expect error");
+        assert_eq!(err.status_code, http::StatusCode::BAD_REQUEST);
 
         Ok(())
     }

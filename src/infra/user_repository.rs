@@ -25,6 +25,7 @@ pub struct UserRecord {
     subject: String,
     #[sql(size = 256)]
     picture_url: Option<String>,
+    last_tried_daily_gacha: Option<i64>,
 }
 
 impl UserRecord {
@@ -37,6 +38,7 @@ impl UserRecord {
             created_at: UnixTime(self.created_at),
             subject: self.subject,
             picture_url: self.picture_url.map(Url),
+            last_tried_daily_gacha: UnixTime(self.last_tried_daily_gacha.unwrap_or(0)),
         }
     }
 
@@ -49,6 +51,7 @@ impl UserRecord {
             created_at: user.created_at.0,
             subject: user.subject,
             picture_url: user.picture_url.map(|u| u.0),
+            last_tried_daily_gacha: Some(user.last_tried_daily_gacha.0),
         }
     }
 }
@@ -142,6 +145,40 @@ impl IUserRepository for UserRepository {
 
         Ok(())
     }
+
+    async fn conditional_save_point(
+        &self,
+        user: User,
+        daily_gacha_timestamp: UnixTime,
+    ) -> Result<(), ServiceError> {
+        let mut conn = self.pool.get_conn().await?;
+        let record = UserRecord::from_model(user);
+        let rows = conn
+            .sql_exec(
+                format!(
+                    "UPDATE {} SET {} = {}, {} = {} WHERE {} = '{}' AND {} = {}",
+                    table_name::<UserRecord>(),
+                    accessor!(UserRecord::point),
+                    record.point,
+                    accessor!(UserRecord::last_tried_daily_gacha),
+                    record.last_tried_daily_gacha.unwrap_or(0),
+                    accessor!(UserRecord::id),
+                    record.id,
+                    accessor!(UserRecord::last_tried_daily_gacha),
+                    daily_gacha_timestamp.0,
+                ),
+                debil::Params::new(),
+            )
+            .await?;
+
+        if rows == 0 {
+            return Err(ServiceError::bad_request(failure::err_msg(
+                "ConditionNotMet",
+            )));
+        }
+
+        Ok(())
+    }
 }
 
 #[cfg(test)]
@@ -194,6 +231,14 @@ pub mod user_repository_mock {
 
             Ok(())
         }
+
+        async fn conditional_save_point(
+            &self,
+            user: User,
+            daily_gacha_timestamp: UnixTime,
+        ) -> Result<(), ServiceError> {
+            unimplemented!()
+        }
     }
 
     pub struct UserRepositoryListIdStub {
@@ -229,6 +274,14 @@ pub mod user_repository_mock {
         }
 
         async fn save(&self, user: User) -> Result<(), ServiceError> {
+            unimplemented!()
+        }
+
+        async fn conditional_save_point(
+            &self,
+            user: User,
+            daily_gacha_timestamp: UnixTime,
+        ) -> Result<(), ServiceError> {
             unimplemented!()
         }
     }
