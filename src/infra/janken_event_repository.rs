@@ -97,7 +97,11 @@ impl IJankenEventRepository for JankenEventRepository {
         records.into_iter().map(|r| r.into_model()).collect()
     }
 
-    async fn find_by_user_id(&self, user_id: &UserId) -> Result<Vec<JankenEvent>, ServiceError> {
+    async fn find_by_user_id(
+        &self,
+        user_id: &UserId,
+        limit: i32,
+    ) -> Result<Vec<JankenEvent>, ServiceError> {
         let mut conn = self.pool.get_conn().await?;
         let records = conn
             .load_with::<JankenEventRecord>(
@@ -110,7 +114,8 @@ impl IJankenEventRepository for JankenEventRepository {
                     .order_by(
                         accessor!(JankenEventRecord::created_at),
                         Ordering::Descending,
-                    ),
+                    )
+                    .limit(limit),
             )
             .await?;
 

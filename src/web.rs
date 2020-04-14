@@ -289,6 +289,16 @@ async fn api_list_janken_events(
     ctx: Arc<WebContext>,
 ) -> server::Response {
     let auth = WebContext::get_authorization(&req, ctx.clone());
+    let query = url::Url::parse(&req.uri().to_string())
+        .ok()
+        .and_then(|u| {
+            u.query_pairs()
+                .into_iter()
+                .collect::<std::collections::HashMap<_, _>>()
+                .get("limit")
+                .and_then(|r| r.parse::<i32>().ok())
+        })
+        .unwrap_or(20);
 
-    server::response_from_async(ctx.app.services.janken_service.find_by_user_id(auth)).await
+    server::response_from_async(ctx.app.services.janken_service.find_by_user_id(auth, query)).await
 }

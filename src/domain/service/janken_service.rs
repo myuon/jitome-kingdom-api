@@ -67,11 +67,12 @@ impl JankenService {
     pub async fn find_by_user_id(
         &self,
         auth: Authorization,
+        limit: i32,
     ) -> Result<serde_json::Value, ServiceError> {
         let auth_user = auth.require_auth()?;
         let user = self.user_repo.find_by_subject(&auth_user.subject).await?;
 
-        let events = self.janken_repo.find_by_user_id(&user.id).await?;
+        let events = self.janken_repo.find_by_user_id(&user.id, limit).await?;
         Ok(serde_json::json!({ "events": events }))
     }
 }

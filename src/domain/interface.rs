@@ -61,7 +61,11 @@ pub trait IJankenEventRepository {
         user_id: &UserId,
         status: JankenStatus,
     ) -> Result<Vec<JankenEvent>, ServiceError>;
-    async fn find_by_user_id(&self, user_id: &UserId) -> Result<Vec<JankenEvent>, ServiceError>;
+    async fn find_by_user_id(
+        &self,
+        user_id: &UserId,
+        limit: i32,
+    ) -> Result<Vec<JankenEvent>, ServiceError>;
     async fn scan_by_status(
         &self,
         status: JankenStatus,
