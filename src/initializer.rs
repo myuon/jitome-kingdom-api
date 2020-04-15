@@ -1,6 +1,6 @@
 use crate::domain::service::{
     GachaService, GiftDistributionService, GiftService, JankenProcessService, JankenService,
-    RankingProcessService, UserIconUploadService, UserMeService, UserService,
+    PointProcessService, UserIconUploadService, UserMeService, UserService,
 };
 use crate::infra::{
     ConnPool, DynamoClient, GachaEventRepository, GiftRepository, JWTHandler,
@@ -37,7 +37,7 @@ pub struct Services {
     pub user_icon_upload_service: UserIconUploadService,
     pub janken_service: JankenService,
     pub janken_process_service: JankenProcessService,
-    pub ranking_process_service: RankingProcessService,
+    pub point_process_service: PointProcessService,
 }
 
 pub struct App {
@@ -94,7 +94,7 @@ pub fn new(config: Config) -> App {
             infras.gift_repository.clone(),
             infras.user_repository.clone(),
         ),
-        ranking_process_service: RankingProcessService::new(
+        point_process_service: PointProcessService::new(
             infras.user_repository.clone(),
             infras.point_repository.clone(),
         ),

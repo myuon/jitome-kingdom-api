@@ -54,7 +54,7 @@ async fn main() {
                 }
             }
             "ranking" => {
-                if let Err(err) = app.services.ranking_process_service.run().await {
+                if let Err(err) = app.services.point_process_service.run().await {
                     panic!("{:?}", err);
                 }
             }

@@ -4,17 +4,17 @@ use crate::wrapper::error::ServiceError;
 use std::sync::Arc;
 
 #[derive(Clone)]
-pub struct RankingProcessService {
+pub struct PointProcessService {
     user_repo: Arc<dyn IUserRepository + Sync + Send>,
     point_repo: Arc<dyn IPointEventRepository + Sync + Send>,
 }
 
-impl RankingProcessService {
+impl PointProcessService {
     pub fn new(
         user_repo: Arc<dyn IUserRepository + Sync + Send>,
         point_repo: Arc<dyn IPointEventRepository + Sync + Send>,
     ) -> Self {
-        RankingProcessService {
+        PointProcessService {
             user_repo,
             point_repo,
         }
