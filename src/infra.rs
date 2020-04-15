@@ -27,3 +27,6 @@ pub use janken_event_repository::*;
 
 mod point_repository;
 pub use point_repository::*;
+
+mod ranking_repository;
+pub use ranking_repository::*;

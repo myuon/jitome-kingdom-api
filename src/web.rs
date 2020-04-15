@@ -72,6 +72,8 @@ pub fn handlers(app: App) -> server::App<WebContext> {
         )
         .route("/janken", http::Method::POST, api_create_janken)
         .route("/janken", http::Method::GET, api_list_janken_events)
+        .route("/ranking/top", http::Method::GET, api_ranking_top)
+        .route("/ranking/diff", http::Method::GET, api_ranking_diff)
 }
 
 async fn api_hello(
@@ -301,4 +303,36 @@ async fn api_list_janken_events(
         .unwrap_or(20);
 
     server::response_from_async(ctx.app.services.janken_service.find_by_user_id(auth, query)).await
+}
+
+async fn api_ranking_top(
+    req: server::Request,
+    ps: server::Params,
+    ctx: Arc<WebContext>,
+) -> server::Response {
+    let auth = WebContext::get_authorization(&req, ctx.clone());
+
+    server::response_from(
+        ctx.app
+            .services
+            .point_ranking_service
+            .list_by_points(auth)
+            .await,
+    )
+}
+
+async fn api_ranking_diff(
+    req: server::Request,
+    ps: server::Params,
+    ctx: Arc<WebContext>,
+) -> server::Response {
+    let auth = WebContext::get_authorization(&req, ctx.clone());
+
+    server::response_from(
+        ctx.app
+            .services
+            .point_ranking_service
+            .list_by_diff(auth)
+            .await,
+    )
 }

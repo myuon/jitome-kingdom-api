@@ -1,10 +1,11 @@
 use crate::domain::service::{
     GachaService, GiftDistributionService, GiftService, JankenProcessService, JankenService,
-    PointProcessService, UserIconUploadService, UserMeService, UserService,
+    PointProcessService, PointRankingService, UserIconUploadService, UserMeService, UserService,
 };
 use crate::infra::{
     ConnPool, DynamoClient, GachaEventRepository, GiftRepository, JWTHandler,
-    JankenEventRepository, PointEventRepository, S3Client, UserIconUploader, UserRepository,
+    JankenEventRepository, PointEventRepository, RankingRepository, S3Client, UserIconUploader,
+    UserRepository,
 };
 use std::sync::Arc;
 
@@ -26,6 +27,7 @@ pub struct Infras {
     pub user_icon_uploader: Arc<UserIconUploader>,
     pub janken_repository: Arc<JankenEventRepository>,
     pub point_repository: Arc<PointEventRepository>,
+    pub ranking_repository: Arc<RankingRepository>,
 }
 
 pub struct Services {
@@ -38,6 +40,7 @@ pub struct Services {
     pub janken_service: JankenService,
     pub janken_process_service: JankenProcessService,
     pub point_process_service: PointProcessService,
+    pub point_ranking_service: PointRankingService,
 }
 
 pub struct App {
@@ -49,11 +52,14 @@ pub fn new(config: Config) -> App {
     let conn_pool = Arc::new(ConnPool::new(&config.db_url).unwrap());
     let dynamo_client = Arc::new(DynamoClient::new(config.aws_region.clone()));
     let s3_client = Arc::new(S3Client::new(config.aws_region.clone()));
+    let user_repo = Arc::new(UserRepository::new(conn_pool.clone()));
+    let point_repo = Arc::new(PointEventRepository::new(conn_pool.clone()));
+
     let infras = Infras {
         dynamo_client: dynamo_client.clone(),
         s3_client: s3_client.clone(),
         jwt_handler: Arc::new(JWTHandler::new(config.public_key)),
-        user_repository: Arc::new(UserRepository::new(conn_pool.clone())),
+        user_repository: user_repo.clone(),
         gacha_event_repository: Arc::new(GachaEventRepository::new(
             dynamo_client.clone(),
             config.gacha_event_repository_table_name,
@@ -64,7 +70,8 @@ pub fn new(config: Config) -> App {
             config.user_icon_upload_bucket,
         )),
         janken_repository: Arc::new(JankenEventRepository::new(conn_pool.clone())),
-        point_repository: Arc::new(PointEventRepository::new(conn_pool.clone())),
+        point_repository: point_repo.clone(),
+        ranking_repository: Arc::new(RankingRepository::new(conn_pool.clone())),
     };
     let services = Services {
         user_me_service: UserMeService::new(infras.user_repository.clone()),
@@ -98,6 +105,7 @@ pub fn new(config: Config) -> App {
             infras.user_repository.clone(),
             infras.point_repository.clone(),
         ),
+        point_ranking_service: PointRankingService::new(infras.ranking_repository.clone()),
     };
 
     App { infras, services }

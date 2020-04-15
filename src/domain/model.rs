@@ -18,3 +18,6 @@ pub use janken_event::*;
 
 mod point_event;
 pub use point_event::*;
+
+mod ranking;
+pub use ranking::*;

@@ -24,3 +24,6 @@ pub use janken_process_service::*;
 
 mod point_process_service;
 pub use point_process_service::*;
+
+mod point_ranking_service;
+pub use point_ranking_service::*;
