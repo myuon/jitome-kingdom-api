@@ -21,7 +21,7 @@ impl RankingRepository {
 
 struct JoinedRankingView {
     user: UserRecord,
-    diff: u64,
+    diff: Option<u64>,
 }
 
 impl SQLMapper for JoinedRankingView {
@@ -64,15 +64,19 @@ impl IRankingRepository for RankingRepository {
                 // FIXME: accessor macro
                 QueryBuilder::new()
                     .inner_join(table_name::<UserRecord>(), ("user_id", "id"))
-                    .order_by(format!("(current - previous)",), Ordering::Descending)
-                    .append_selects(vec![format!("(current - previous) AS diff",)])
+                    .order_by(format!("(current - previous)"), Ordering::Descending)
+                    .append_selects(vec![
+                        format!("(current - previous) AS diff"),
+                        // ↓ これないと動かないのはなぜ？
+                        format!("{}.*", table_name::<UserRecord>()),
+                    ])
                     .limit(limit as i32),
             )
             .await?;
 
         Ok(views
             .into_iter()
-            .map(|view| PointDiffRankingRecord::new(view.user.into_model(), view.diff))
+            .map(|view| PointDiffRankingRecord::new(view.user.into_model(), view.diff.unwrap_or(0)))
             .collect::<Vec<_>>())
     }
 }
