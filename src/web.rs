@@ -291,7 +291,9 @@ async fn api_list_janken_events(
     ctx: Arc<WebContext>,
 ) -> server::Response {
     let auth = WebContext::get_authorization(&req, ctx.clone());
-    let query = url::Url::parse(&req.uri().to_string())
+    // urlが相対パスをパースできないので適当にoriginを設定
+    let query = url::Url::parse("http://localhost")
+        .and_then(|u| u.join(&req.uri().to_string()))
         .ok()
         .and_then(|u| {
             u.query_pairs()
