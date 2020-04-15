@@ -9,7 +9,9 @@ mod web;
 mod wrapper;
 pub use wrapper::*;
 
-use crate::infra::{GiftRecord, GiftUserRelation, JWTHandler, JankenEventRecord, UserRecord};
+use crate::infra::{
+    GiftRecord, GiftUserRelation, JWTHandler, JankenEventRecord, PointEventRecord, UserRecord,
+};
 use debil_mysql::DebilConn;
 use std::env;
 use std::sync::Arc;
@@ -19,6 +21,7 @@ async fn migrate(mut conn: DebilConn) -> Result<(), debil_mysql::Error> {
     conn.migrate::<GiftRecord>().await?;
     conn.migrate::<GiftUserRelation>().await?;
     conn.migrate::<JankenEventRecord>().await?;
+    conn.migrate::<PointEventRecord>().await?;
 
     Ok(())
 }
@@ -47,6 +50,11 @@ async fn main() {
         Ok(task) => match task.as_str() {
             "janken" => {
                 if let Err(err) = app.services.janken_process_service.run().await {
+                    panic!("{:?}", err);
+                }
+            }
+            "ranking" => {
+                if let Err(err) = app.services.ranking_process_service.run().await {
                     panic!("{:?}", err);
                 }
             }

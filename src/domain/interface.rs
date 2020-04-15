@@ -1,6 +1,7 @@
 use crate::base64::Base64;
 use crate::domain::model::{
-    GachaEvent, GachaType, Gift, GiftId, GiftStatus, JankenEvent, JankenStatus, User, UserId,
+    GachaEvent, GachaType, Gift, GiftId, GiftStatus, JankenEvent, JankenStatus, PointEvent, User,
+    UserId,
 };
 use crate::unixtime::UnixTime;
 use crate::url::Url;
@@ -73,4 +74,10 @@ pub trait IJankenEventRepository {
     ) -> Result<Vec<JankenEvent>, ServiceError>;
     async fn create(&self, janken_event: JankenEvent) -> Result<(), ServiceError>;
     async fn save(&self, janken_event: JankenEvent) -> Result<(), ServiceError>;
+}
+
+#[async_trait]
+pub trait IPointEventRepository {
+    async fn find_by_id(&self, user_id: &UserId) -> Result<PointEvent, ServiceError>;
+    async fn save(&self, event: PointEvent) -> Result<(), ServiceError>;
 }

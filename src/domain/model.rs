@@ -15,3 +15,6 @@ pub use gift::*;
 
 mod janken_event;
 pub use janken_event::*;
+
+mod point_event;
+pub use point_event::*;

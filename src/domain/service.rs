@@ -21,3 +21,6 @@ pub use janken_service::*;
 
 mod janken_process_service;
 pub use janken_process_service::*;
+
+mod ranking_process_service;
+pub use ranking_process_service::*;

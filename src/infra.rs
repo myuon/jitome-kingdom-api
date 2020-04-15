@@ -24,3 +24,6 @@ pub use user_icon_uploader::*;
 
 mod janken_event_repository;
 pub use janken_event_repository::*;
+
+mod point_repository;
+pub use point_repository::*;
