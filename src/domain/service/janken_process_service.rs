@@ -26,11 +26,14 @@ impl JankenProcessService {
 
     pub async fn process(&self, events: Vec<JankenEvent>) -> Result<(), ServiceError> {
         let mut events_filtered = Vec::new();
-        for event in events {
+        for mut event in events {
             // タイムアウトを設定
             if (UnixTime::now().datetime_jst() - event.created_at.datetime_jst())
                 >= chrono::Duration::hours(8)
             {
+                event.set_timeout();
+                self.janken_repo.save(event.clone()).await?;
+
                 let gift = Gift::new(
                     GiftType::Point(event.point * 2),
                     "じゃんけんで不戦勝となったのでその報酬です".to_string(),

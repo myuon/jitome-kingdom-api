@@ -80,6 +80,7 @@ pub enum JankenStatus {
     Ready,
     Won,
     Lost,
+    Timeout,
 }
 
 impl JankenStatus {
@@ -90,6 +91,7 @@ impl JankenStatus {
             Ready => "ready",
             Won => "won",
             Lost => "lost",
+            Timeout => "timeout",
         }
         .to_string()
     }
@@ -99,6 +101,7 @@ impl JankenStatus {
             "ready" => Ok(JankenStatus::Ready),
             "won" => Ok(JankenStatus::Won),
             "lost" => Ok(JankenStatus::Lost),
+            "timeout" => Ok(JankenStatus::Timeout),
             _ => Err(ServiceError::bad_request(failure::err_msg(format!(
                 "Unsupported status: {}",
                 rep
@@ -156,5 +159,9 @@ impl JankenEvent {
     pub fn set_opponent(&mut self, user_id: UserId, screen_name: Option<String>) {
         self.opponent_user_id = Some(user_id);
         self.opponent_user_screen_name = screen_name;
+    }
+
+    pub fn set_timeout(&mut self) {
+        self.status = JankenStatus::Timeout;
     }
 }
