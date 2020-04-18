@@ -198,16 +198,16 @@ mod tests {
             .await?;
 
         let events = janken_repo.saved.lock().unwrap().clone();
-        // あいこの場合は何も起きないので決着が着くのは2つ
-        assert_eq!(events.len(), 2);
+        // あいこの場合は何も起きないので決着が着くのは2つ, タイムアウトになるものが1つで合計3つ
+        assert_eq!(events.len(), 3);
 
         // Paperのイベントが勝つ
-        assert_eq!(events[0].id, event_paper);
-        assert_eq!(events[0].status, JankenStatus::Won);
+        assert_eq!(events[1].id, event_paper);
+        assert_eq!(events[1].status, JankenStatus::Won);
 
         // Rockのイベントは負ける
-        assert_eq!(events[1].id, event_rock);
-        assert_eq!(events[1].status, JankenStatus::Lost);
+        assert_eq!(events[2].id, event_rock);
+        assert_eq!(events[2].status, JankenStatus::Lost);
 
         let gifts = gift_repo.created.lock().unwrap().clone();
         assert_eq!(gifts.len(), 2);

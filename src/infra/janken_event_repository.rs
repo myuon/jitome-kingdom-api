@@ -198,6 +198,7 @@ pub mod janken_event_repository_mock {
         async fn find_by_user_id(
             &self,
             user_id: &UserId,
+            limit: i32,
         ) -> Result<Vec<JankenEvent>, ServiceError> {
             Ok(self.events.clone())
         }
