@@ -81,7 +81,10 @@ async fn api_hello(
     ps: server::Params,
     ctx: Arc<WebContext>,
 ) -> server::Response {
-    server::response_from(Ok("hello, world!"))
+    server::response_from(Ok(serde_json::json!({
+        "data": "hello, world!",
+        "uri": req.uri().to_string()
+    })))
 }
 
 async fn api_get_me(
