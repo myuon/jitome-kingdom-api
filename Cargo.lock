@@ -355,9 +355,9 @@ checksum = "11c0346158a19b3627234e15596f5e465c360fcdb97d817bcb255e0510f5a788"
 
 [[package]]
 name = "debil"
-version = "0.3.2"
+version = "0.3.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3c9738b0316a682bc5a5c8b713260a56c37765787d06bac318a9b0d00fc08ff1"
+checksum = "f9c5e9ea016b7d2badf67a444033b43e63855993175781be1bc10efae98220e3"
 dependencies = [
  "async-trait",
  "debil-derive",
@@ -365,9 +365,9 @@ dependencies = [
 
 [[package]]
 name = "debil-derive"
-version = "0.2.0"
+version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c153abbc3b77e2b7c9f54afd78d53e9bf398ae8e5112cfe99c51714f746c2b5a"
+checksum = "afc295f28f32b0d13bd5a8c1a96afc189ddec8d6e16ff64c9d85dbab8367ebae"
 dependencies = [
  "proc-macro2",
  "quote",

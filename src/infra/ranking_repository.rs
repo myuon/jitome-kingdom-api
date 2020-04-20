@@ -42,7 +42,7 @@ impl IRankingRepository for RankingRepository {
         let users = conn
             .load_with::<UserRecord>(
                 QueryBuilder::new()
-                    .order_by("point", Ordering::Descending)
+                    .order_by(accessor!(UserRecord::point), Ordering::Descending)
                     .limit(limit as i32),
             )
             .await?;
@@ -63,10 +63,27 @@ impl IRankingRepository for RankingRepository {
             .load_with2::<PointEventRecord, JoinedRankingView>(
                 // FIXME: accessor macro
                 QueryBuilder::new()
-                    .inner_join(table_name::<UserRecord>(), ("user_id", "id"))
-                    .order_by(format!("(current - previous)"), Ordering::Descending)
+                    .inner_join(
+                        table_name::<UserRecord>(),
+                        (
+                            accessor_name!(PointEventRecord::user_id),
+                            accessor_name!(UserRecord::id),
+                        ),
+                    )
+                    .order_by(
+                        format!(
+                            "({} - {})",
+                            accessor!(PointEventRecord::current),
+                            accessor!(PointEventRecord::previous)
+                        ),
+                        Ordering::Descending,
+                    )
                     .append_selects(vec![
-                        format!("(current - previous) AS diff"),
+                        format!(
+                            "({} - {}) AS diff",
+                            accessor!(PointEventRecord::current),
+                            accessor!(PointEventRecord::previous)
+                        ),
                         // ↓ これないと動かないのはなぜ？
                         format!("{}.*", table_name::<UserRecord>()),
                     ])

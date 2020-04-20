@@ -97,8 +97,8 @@ impl IUserRepository for UserRepository {
         let mut conn = self.pool.get_conn().await?;
         let user = conn
             .first_with::<UserRecord>(QueryBuilder::new().filter(format!(
-                "{}.id = '{}'",
-                table_name::<UserRecord>(),
+                "{} = '{}'",
+                accessor!(UserRecord::id),
                 user_id.0
             )))
             .await?;
@@ -110,8 +110,8 @@ impl IUserRepository for UserRepository {
         let mut conn = self.pool.get_conn().await?;
         let user = conn
             .first_with::<UserRecord>(QueryBuilder::new().filter(format!(
-                "{}.screen_name = '{}'",
-                table_name::<UserRecord>(),
+                "{} = '{}'",
+                accessor!(UserRecord::screen_name),
                 screen_name
             )))
             .await?;
@@ -123,8 +123,8 @@ impl IUserRepository for UserRepository {
         let mut conn = self.pool.get_conn().await?;
         let user = conn
             .first_with::<UserRecord>(QueryBuilder::new().filter(format!(
-                "{}.subject = '{}'",
-                table_name::<UserRecord>(),
+                "{} = '{}'",
+                accessor!(UserRecord::subject),
                 subject
             )))
             .await?;
