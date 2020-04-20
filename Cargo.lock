@@ -387,9 +387,9 @@ dependencies = [
 
 [[package]]
 name = "debil-mysql"
-version = "0.3.0"
+version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5a4686f0575e6ad9bc7025e4449ee6229dde7d9fa9deb8eef5efc810ab4babe4"
+checksum = "cec3c57786fc5dff06906f698e18cbeabd5d84b0360d4254ce3d562fd6592ade"
 dependencies = [
  "async-trait",
  "debil",
