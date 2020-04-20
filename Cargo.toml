@@ -20,10 +20,10 @@ chrono = "0.4.11"
 chrono-tz = "0.5.1"
 uuid = { version = "0.8.1", features = ["v4"] }
 async-trait = "0.1.24"
-debil = "0.3.1"
-debil-mysql = "0.2.1"
+debil = "0.3.2"
+debil-mysql = "0.3.0"
 debil-dynamodb = "0.1.2"
-mysql_async = "0.22.1"
+mysql_async = "0.23.0"
 biscuit = "0.4.2"
 reqwest = { version = "0.10", features = ["json"] }
 rand = "0.7.3"

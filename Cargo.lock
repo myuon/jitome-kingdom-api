@@ -355,9 +355,9 @@ checksum = "11c0346158a19b3627234e15596f5e465c360fcdb97d817bcb255e0510f5a788"
 
 [[package]]
 name = "debil"
-version = "0.3.1"
+version = "0.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "63af913695acdf054491a57f7e0167024954ef4da2ab4e6ed6ede60f1c0d4d19"
+checksum = "3c9738b0316a682bc5a5c8b713260a56c37765787d06bac318a9b0d00fc08ff1"
 dependencies = [
  "async-trait",
  "debil-derive",
@@ -387,9 +387,9 @@ dependencies = [
 
 [[package]]
 name = "debil-mysql"
-version = "0.2.1"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dd7792151c18a656d0c559538b78bdf53d117fe259d5a9a35ae8f2af6e9f0db5"
+checksum = "5a4686f0575e6ad9bc7025e4449ee6229dde7d9fa9deb8eef5efc810ab4babe4"
 dependencies = [
  "async-trait",
  "debil",
@@ -741,9 +741,9 @@ dependencies = [
 
 [[package]]
 name = "hyper"
-version = "0.13.4"
+version = "0.13.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ed6081100e960d9d74734659ffc9cc91daf1c0fc7aceb8eaa94ee1a3f5046f2e"
+checksum = "96816e1d921eca64d208a85aab4f7798455a8e34229ee5a88c935bdee1b78b14"
 dependencies = [
  "bytes",
  "futures-channel",
@@ -1053,15 +1053,16 @@ dependencies = [
 
 [[package]]
 name = "mysql_async"
-version = "0.22.2"
+version = "0.23.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a3ab6132a8ca0bfa77100fc839738abe084295f3d512b1250ce6b6340082ad66"
+checksum = "1a3fd66ae4fc140bf5ec55c443d79c4c1ad574ce2b5aa3f12aa6ebbd2fd4a2f4"
 dependencies = [
  "bytes",
  "crossbeam",
  "futures-core",
  "futures-sink",
  "futures-util",
+ "lazy_static",
  "mio-named-pipes",
  "mysql_common",
  "native-tls",
@@ -1079,9 +1080,9 @@ dependencies = [
 
 [[package]]
 name = "mysql_common"
-version = "0.20.2"
+version = "0.21.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8e3950cf532b88574a05c3fcd4f1b1e0cd0b84883462ae6811298fe7c3c92edc"
+checksum = "a2f612a8e5d723ab0ecd2e424f88df298bd9d3eb8d40b80cd293c6126b25bdf3"
 dependencies = [
  "base64 0.11.0",
  "bigdecimal",
