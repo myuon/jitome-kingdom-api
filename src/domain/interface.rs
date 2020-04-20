@@ -48,6 +48,12 @@ pub trait IGiftRepository {
         user_id: UserId,
         status: GiftStatus,
     ) -> Result<(), ServiceError>;
+    async fn create_for(
+        &self,
+        gift: Gift,
+        users: Vec<UserId>,
+        status: GiftStatus,
+    ) -> Result<(), ServiceError>;
 }
 
 #[async_trait]
@@ -74,6 +80,7 @@ pub trait IJankenEventRepository {
     ) -> Result<Vec<JankenEvent>, ServiceError>;
     async fn create(&self, janken_event: JankenEvent) -> Result<(), ServiceError>;
     async fn save(&self, janken_event: JankenEvent) -> Result<(), ServiceError>;
+    async fn save_all(&self, janken_events: Vec<JankenEvent>) -> Result<(), ServiceError>;
 }
 
 #[async_trait]

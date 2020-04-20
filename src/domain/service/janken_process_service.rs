@@ -38,9 +38,9 @@ impl JankenProcessService {
                     GiftType::Point(event.point * 2),
                     "じゃんけんで不戦勝となったのでその報酬です".to_string(),
                 );
-                self.gift_repo.create(gift.clone()).await?;
+                let status = gift.status.clone();
                 self.gift_repo
-                    .save_status(gift.id, event.user_id, gift.status)
+                    .create_for(gift, vec![event.user_id], status)
                     .await?;
 
                 continue;
@@ -67,19 +67,23 @@ impl JankenProcessService {
                     winner.set_opponent(loser_user.id, loser_user.screen_name);
                     loser.set_opponent(winner_user.id, winner_user.screen_name);
 
-                    // トランザクション張ろうね
-                    self.janken_repo.save(winner.clone()).await?;
-                    self.janken_repo.save(loser.clone()).await?;
+                    self.janken_repo
+                        .save_all(vec![winner.clone(), loser.clone()])
+                        .await?;
 
                     // 勝った方にはギフトとして合計ポイントを送る
                     // 負けた方は、すでにポイントを払っているため何もしない
-                    let gift = Gift::new(
+                    let mut gift = Gift::new(
                         GiftType::Point(event1.point + event2.point),
                         format!("じゃんけんに勝った報酬です"),
                     );
-                    self.gift_repo.create(gift.clone()).await?;
+
+                    // じゃんけんのイベントIDを追跡用に紐付けておくことで、途中で落ちたときに追跡できるようにしておく
+                    gift.set_janken_events(winner.id, loser.id);
+
+                    let status = gift.status.clone();
                     self.gift_repo
-                        .save_status(gift.id, winner.user_id, gift.status)
+                        .create_for(gift, vec![winner.user_id], status)
                         .await?;
                 }
                 _ => break,

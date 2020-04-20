@@ -160,6 +160,22 @@ impl IJankenEventRepository for JankenEventRepository {
 
         Ok(())
     }
+
+    async fn save_all(&self, janken_events: Vec<JankenEvent>) -> Result<(), ServiceError> {
+        let records = janken_events
+            .into_iter()
+            .map(|event| JankenEventRecord::from_model(event))
+            .collect::<Result<Vec<_>, _>>()?;
+
+        let mut conn = self.pool.get_conn().await?;
+        conn.start_transaction().await?;
+        for event in records {
+            conn.save(event).await?;
+        }
+        conn.commit().await?;
+
+        Ok(())
+    }
 }
 
 #[cfg(test)]

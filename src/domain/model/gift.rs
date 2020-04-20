@@ -1,4 +1,4 @@
-use crate::domain::model::GiftId;
+use crate::domain::model::{GiftId, JankenEventId};
 use crate::wrapper::error::ServiceError;
 use crate::wrapper::unixtime::UnixTime;
 use serde::*;
@@ -53,6 +53,8 @@ pub struct Gift {
     pub description: String,
     pub created_at: UnixTime,
     pub status: GiftStatus,
+    pub janken_win_event: Option<JankenEventId>,
+    pub janken_lose_event: Option<JankenEventId>,
 }
 
 impl Gift {
@@ -63,6 +65,8 @@ impl Gift {
             description,
             created_at: UnixTime::now(),
             status: GiftStatus::Ready,
+            janken_win_event: None,
+            janken_lose_event: None,
         }
     }
 
@@ -75,5 +79,10 @@ impl Gift {
 
         self.status = GiftStatus::Opened;
         Ok(())
+    }
+
+    pub fn set_janken_events(&mut self, win_event: JankenEventId, lose_event: JankenEventId) {
+        self.janken_win_event = Some(win_event);
+        self.janken_lose_event = Some(lose_event);
     }
 }

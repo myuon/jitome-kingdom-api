@@ -1,5 +1,5 @@
 use crate::domain::interface::IGiftRepository;
-use crate::domain::model::{Gift, GiftId, GiftStatus, GiftType, UserId};
+use crate::domain::model::{Gift, GiftId, GiftStatus, GiftType, JankenEventId, UserId};
 use crate::infra::ConnPool;
 use crate::wrapper::error::ServiceError;
 use crate::wrapper::unixtime::UnixTime;
@@ -42,6 +42,8 @@ pub struct GiftRecord {
     pub gift_type: String,
     pub description: String,
     pub created_at: i64,
+    pub janken_win_event: Option<String>,
+    pub janken_lose_event: Option<String>,
 }
 
 impl GiftRecord {
@@ -53,6 +55,8 @@ impl GiftRecord {
             ))?,
             description: model.description,
             created_at: model.created_at.0,
+            janken_win_event: model.janken_win_event.map(|v| v.0),
+            janken_lose_event: model.janken_lose_event.map(|v| v.0),
         })
     }
 }
@@ -108,6 +112,8 @@ impl JoinedGiftRecordUserRelationView {
             description: self.gift.description,
             created_at: UnixTime(self.gift.created_at),
             status: GiftStatus::from_str(&self.user_relation.status),
+            janken_win_event: self.gift.janken_win_event.map(|v| JankenEventId(v)),
+            janken_lose_event: self.gift.janken_lose_event.map(|v| JankenEventId(v)),
         })
     }
 }
@@ -201,6 +207,30 @@ impl IGiftRepository for GiftRepository {
             status: status.to_string(),
         })
         .await?;
+
+        Ok(())
+    }
+
+    async fn create_for(
+        &self,
+        gift: Gift,
+        users: Vec<UserId>,
+        status: GiftStatus,
+    ) -> Result<(), ServiceError> {
+        let mut conn = self.pool.get_conn().await?;
+        conn.start_transaction().await?;
+
+        let gift_id = gift.id.clone();
+        conn.create(GiftRecord::from_model(gift)?).await?;
+        for user_id in users {
+            conn.save(GiftUserRelation {
+                id: gift_id.0.clone(),
+                user_id: user_id.0,
+                status: status.to_string(),
+            })
+            .await?;
+        }
+        conn.commit().await?;
 
         Ok(())
     }
