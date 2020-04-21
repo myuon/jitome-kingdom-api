@@ -51,6 +51,7 @@ pub fn handlers(app: App) -> server::App<WebContext> {
             http::Method::GET,
             api_check_user_available,
         )
+        .route("/users/:screen_name", http::Method::GET, api_get_user)
         .route("/gacha/daily", http::Method::POST, api_try_daily_gacha)
         .route(
             "/gacha/daily/latest",
@@ -129,6 +130,29 @@ async fn api_upload_icon(
             .await
     })
     .await
+}
+
+async fn api_get_user(
+    req: server::Request,
+    ps: server::Params,
+    ctx: Arc<WebContext>,
+) -> server::Response {
+    let screen_name = match ps.find("screen_name") {
+        None => {
+            return server::response_from::<()>(Err(ServiceError::bad_request(failure::err_msg(
+                "not_found",
+            ))))
+        }
+        Some(v) => v,
+    };
+
+    server::response_from(
+        ctx.app
+            .services
+            .user_service
+            .find_by_screen_name(screen_name)
+            .await,
+    )
 }
 
 async fn api_check_user_available(

@@ -12,13 +12,7 @@ impl UserService {
         UserService { user_repository }
     }
 
-    pub async fn find_by_screen_name(
-        &self,
-        auth: Authorization,
-        screen_name: String,
-    ) -> Result<User, ServiceError> {
-        auth.require_auth()?;
-
+    pub async fn find_by_screen_name(&self, screen_name: String) -> Result<User, ServiceError> {
         let user = self
             .user_repository
             .find_by_screen_name(&screen_name)
