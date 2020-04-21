@@ -114,7 +114,7 @@ impl JankenProcessService {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::domain::model::{GiftStatus, JankenEventId, JankenHand, User, UserId};
+    use crate::domain::model::{GiftStatus, JankenEventId, JankenHand, UserId};
     use crate::infra::gift_repository_mock::GiftRepositoryMock;
     use crate::infra::janken_event_repository_mock::JankenEventRepositoryMock;
     use crate::infra::user_repository_mock::UserRepositoryStub;

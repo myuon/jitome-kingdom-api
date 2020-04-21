@@ -238,5 +238,13 @@ pub mod janken_event_repository_mock {
 
             Ok(())
         }
+
+        async fn save_all(&self, janken_events: Vec<JankenEvent>) -> Result<(), ServiceError> {
+            for event in janken_events {
+                self.saved.lock().unwrap().push(event);
+            }
+
+            Ok(())
+        }
     }
 }

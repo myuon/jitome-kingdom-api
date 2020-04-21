@@ -289,6 +289,23 @@ pub mod gift_repository_mock {
 
             Ok(())
         }
+
+        async fn create_for(
+            &self,
+            gift: Gift,
+            users: Vec<UserId>,
+            status: GiftStatus,
+        ) -> Result<(), ServiceError> {
+            self.created.lock().unwrap().push(gift.clone());
+            for user_id in users {
+                self.saved
+                    .lock()
+                    .unwrap()
+                    .push((gift.id.clone(), user_id, status.clone()));
+            }
+
+            Ok(())
+        }
     }
 
     pub struct GiftRepositoryItemStub {
@@ -340,6 +357,15 @@ pub mod gift_repository_mock {
             self.saved.lock().unwrap().push((gift_id, user_id, status));
 
             Ok(())
+        }
+
+        async fn create_for(
+            &self,
+            gift: Gift,
+            users: Vec<UserId>,
+            status: GiftStatus,
+        ) -> Result<(), ServiceError> {
+            unimplemented!()
         }
     }
 }

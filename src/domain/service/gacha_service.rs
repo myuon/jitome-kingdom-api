@@ -135,7 +135,6 @@ mod test {
     use crate::domain::model::{User, UserId};
     use crate::infra::gacha_event_repository_mock::*;
     use crate::infra::user_repository_mock::*;
-    use crate::infra::GachaEventRepository;
 
     #[tokio::test]
     async fn gacha_available_with_no_records() -> Result<(), ServiceError> {
