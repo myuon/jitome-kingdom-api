@@ -75,6 +75,11 @@ pub fn handlers(app: App) -> server::App<WebContext> {
         .route("/janken", http::Method::GET, api_list_janken_events)
         .route("/ranking/top", http::Method::GET, api_ranking_top)
         .route("/ranking/diff", http::Method::GET, api_ranking_diff)
+        .route(
+            "/ranking/start_execution",
+            http::Method::POST,
+            api_ranking_batch_start,
+        )
 }
 
 async fn api_hello(
@@ -364,4 +369,12 @@ async fn api_ranking_diff(
             .list_by_diff(auth)
             .await,
     )
+}
+
+async fn api_ranking_batch_start(
+    req: server::Request,
+    ps: server::Params,
+    ctx: Arc<WebContext>,
+) -> server::Response {
+    server::response_from(ctx.app.services.point_process_service.start().await)
 }

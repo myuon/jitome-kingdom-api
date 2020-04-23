@@ -93,6 +93,19 @@ impl IUserRepository for UserRepository {
         Ok(users.into_iter().map(|m| UserId(m.id)).collect())
     }
 
+    async fn find_any_user(&self) -> Result<Option<UserId>, ServiceError> {
+        let mut conn = self.pool.get_conn().await?;
+        let mut users = conn
+            .load_with2::<UserRecord, UserIdMapper>(
+                QueryBuilder::new()
+                    .selects(vec![accessor!(UserRecord::id)])
+                    .limit(1),
+            )
+            .await?;
+
+        Ok(users.pop().map(|u| UserId(u.id)))
+    }
+
     async fn find_by_id(&self, user_id: &UserId) -> Result<User, ServiceError> {
         let mut conn = self.pool.get_conn().await?;
         let user = conn

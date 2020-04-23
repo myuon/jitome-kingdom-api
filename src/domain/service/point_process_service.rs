@@ -1,12 +1,19 @@
 use crate::domain::interface::{IPointEventRepository, IUserRepository};
 use crate::domain::model::PointEvent;
 use crate::wrapper::error::ServiceError;
+use crate::wrapper::unixtime::UnixTime;
+use serde::*;
 use std::sync::Arc;
 
 #[derive(Clone)]
 pub struct PointProcessService {
     user_repo: Arc<dyn IUserRepository + Sync + Send>,
     point_repo: Arc<dyn IPointEventRepository + Sync + Send>,
+}
+
+#[derive(Serialize)]
+pub struct StartProcessOutput {
+    executed: bool,
 }
 
 impl PointProcessService {
@@ -40,5 +47,23 @@ impl PointProcessService {
         }
 
         Ok(())
+    }
+
+    pub async fn start(&self) -> Result<StartProcessOutput, ServiceError> {
+        let may_user_id = self.user_repo.find_any_user().await?;
+        let user_id = match may_user_id {
+            None => return Ok(StartProcessOutput { executed: false }),
+            Some(user_id) => user_id,
+        };
+        let point = self.point_repo.find_by_id(&user_id).await?;
+
+        // 23時間より短い間隔でリトライはしない
+        if (UnixTime::now().datetime_jst() - point.updated_at.datetime_jst()).num_hours() < 23 {
+            return Ok(StartProcessOutput { executed: false });
+        }
+
+        self.run().await?;
+
+        Ok(StartProcessOutput { executed: true })
     }
 }
