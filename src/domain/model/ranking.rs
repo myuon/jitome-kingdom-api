@@ -27,13 +27,15 @@ impl UserInfo {
 pub struct PointDiffRankingRecord {
     #[serde(flatten)]
     pub user: UserInfo,
+    pub current: u64,
     pub diff: i64,
 }
 
 impl PointDiffRankingRecord {
-    pub fn new(user: User, diff: i64) -> Self {
+    pub fn new(user: User, current: u64, diff: i64) -> Self {
         PointDiffRankingRecord {
             user: UserInfo::new(user),
+            current,
             diff,
         }
     }

@@ -21,6 +21,7 @@ impl RankingRepository {
 
 struct JoinedRankingView {
     user: UserRecord,
+    current: u64,
     diff: Option<i64>,
 }
 
@@ -30,6 +31,7 @@ impl SQLMapper for JoinedRankingView {
     fn map_from_sql(hm: HashMap<String, Self::ValueType, RandomState>) -> Self {
         JoinedRankingView {
             diff: hm["diff"].clone().deserialize(),
+            current: hm["current"].clone().deserialize(),
             user: map_from_sql(hm),
         }
     }
@@ -52,7 +54,7 @@ impl IRankingRepository for RankingRepository {
                             accessor_name!(UserRecord::id),
                         ),
                     )
-                    .order_by(accessor!(UserRecord::point), Ordering::Descending)
+                    .order_by(accessor!(PointEventRecord::current), Ordering::Descending)
                     .limit(limit as i32)
                     .append_selects(vec![
                         format!(
@@ -67,7 +69,13 @@ impl IRankingRepository for RankingRepository {
 
         Ok(users
             .into_iter()
-            .map(|view| PointDiffRankingRecord::new(view.user.into_model(), view.diff.unwrap_or(0)))
+            .map(|view| {
+                PointDiffRankingRecord::new(
+                    view.user.into_model(),
+                    view.current,
+                    view.diff.unwrap_or(0),
+                )
+            })
             .collect())
     }
 
@@ -110,7 +118,13 @@ impl IRankingRepository for RankingRepository {
 
         Ok(views
             .into_iter()
-            .map(|view| PointDiffRankingRecord::new(view.user.into_model(), view.diff.unwrap_or(0)))
+            .map(|view| {
+                PointDiffRankingRecord::new(
+                    view.user.into_model(),
+                    view.current,
+                    view.diff.unwrap_or(0),
+                )
+            })
             .collect::<Vec<_>>())
     }
 }
