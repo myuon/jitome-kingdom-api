@@ -50,16 +50,19 @@ impl PointProcessService {
     }
 
     pub async fn start(&self) -> Result<StartProcessOutput, ServiceError> {
-        let may_user_id = self.user_repo.find_any_user().await?;
-        let user_id = match may_user_id {
-            None => return Ok(StartProcessOutput { executed: false }),
-            Some(user_id) => user_id,
-        };
-        let point = self.point_repo.find_by_id(&user_id).await?;
-
-        // 23時間より短い間隔でリトライはしない
-        if (UnixTime::now().datetime_jst() - point.updated_at.datetime_jst()).num_hours() < 23 {
-            return Ok(StartProcessOutput { executed: false });
+        let user_id = self.user_repo.find_oldest_user().await?;
+        match self.point_repo.find_by_id(&user_id).await {
+            Ok(point) => {
+                // 23時間より短い間隔でリトライはしない
+                if (UnixTime::now().datetime_jst() - point.updated_at.datetime_jst()).num_hours()
+                    < 23
+                {
+                    return Ok(StartProcessOutput { executed: false });
+                }
+            }
+            // 404のときは最古のユーザーに記録がないので実行してしまう(サービスで初めて実行するときしかこれにはならないはず…)
+            Err(err) if err.status_code == http::StatusCode::NOT_FOUND => (),
+            Err(err) => return Err(err),
         }
 
         self.run().await?;

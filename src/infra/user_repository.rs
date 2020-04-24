@@ -93,17 +93,16 @@ impl IUserRepository for UserRepository {
         Ok(users.into_iter().map(|m| UserId(m.id)).collect())
     }
 
-    async fn find_any_user(&self) -> Result<Option<UserId>, ServiceError> {
+    async fn find_oldest_user(&self) -> Result<UserId, ServiceError> {
         let mut conn = self.pool.get_conn().await?;
-        let mut users = conn
-            .load_with2::<UserRecord, UserIdMapper>(
+        let user = conn
+            .first_with::<UserRecord>(
                 QueryBuilder::new()
-                    .selects(vec![accessor!(UserRecord::id)])
-                    .limit(1),
+                    .order_by(accessor!(UserRecord::created_at), Ordering::Ascending),
             )
             .await?;
 
-        Ok(users.pop().map(|u| UserId(u.id)))
+        Ok(UserId(user.id))
     }
 
     async fn find_by_id(&self, user_id: &UserId) -> Result<User, ServiceError> {

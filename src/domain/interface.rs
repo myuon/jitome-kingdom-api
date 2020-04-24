@@ -11,7 +11,7 @@ use async_trait::async_trait;
 #[async_trait]
 pub trait IUserRepository {
     async fn list_id(&self) -> Result<Vec<UserId>, ServiceError>;
-    async fn find_any_user(&self) -> Result<Option<UserId>, ServiceError>;
+    async fn find_oldest_user(&self) -> Result<UserId, ServiceError>;
     async fn find_by_id(&self, user_id: &UserId) -> Result<User, ServiceError>;
     async fn find_by_screen_name(&self, screen_name: &String) -> Result<User, ServiceError>;
     async fn find_by_subject(&self, subject: &str) -> Result<User, ServiceError>;
