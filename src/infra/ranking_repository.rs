@@ -21,7 +21,7 @@ impl RankingRepository {
 
 struct JoinedRankingView {
     user: UserRecord,
-    diff: Option<u64>,
+    diff: Option<i64>,
 }
 
 impl SQLMapper for JoinedRankingView {
@@ -56,7 +56,7 @@ impl IRankingRepository for RankingRepository {
                     .limit(limit as i32)
                     .append_selects(vec![
                         format!(
-                            "({} - {}) AS diff",
+                            "(CAST({} as SIGNED) - CAST({} as SIGNED)) AS diff",
                             accessor!(PointEventRecord::current),
                             accessor!(PointEventRecord::previous)
                         ),
@@ -89,7 +89,7 @@ impl IRankingRepository for RankingRepository {
                     )
                     .order_by(
                         format!(
-                            "({} - {})",
+                            "(CAST({} as SIGNED) - CAST({} as SIGNED))",
                             accessor!(PointEventRecord::current),
                             accessor!(PointEventRecord::previous)
                         ),
@@ -97,7 +97,7 @@ impl IRankingRepository for RankingRepository {
                     )
                     .append_selects(vec![
                         format!(
-                            "({} - {}) AS diff",
+                            "(CAST({} as SIGNED) - CAST({} as SIGNED)) as diff",
                             accessor!(PointEventRecord::current),
                             accessor!(PointEventRecord::previous)
                         ),
