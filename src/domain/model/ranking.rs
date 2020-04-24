@@ -24,20 +24,6 @@ impl UserInfo {
 }
 
 #[derive(Serialize)]
-pub struct PointRankingRecord {
-    #[serde(flatten)]
-    pub user: UserInfo,
-}
-
-impl PointRankingRecord {
-    pub fn new(user: User) -> Self {
-        PointRankingRecord {
-            user: UserInfo::new(user),
-        }
-    }
-}
-
-#[derive(Serialize)]
 pub struct PointDiffRankingRecord {
     #[serde(flatten)]
     pub user: UserInfo,

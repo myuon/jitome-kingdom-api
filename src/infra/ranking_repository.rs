@@ -1,5 +1,5 @@
 use crate::domain::interface::IRankingRepository;
-use crate::domain::model::{PointDiffRankingRecord, PointRankingRecord};
+use crate::domain::model::PointDiffRankingRecord;
 use crate::infra::{ConnPool, PointEventRecord, UserRecord};
 use crate::wrapper::error::ServiceError;
 use async_trait::async_trait;
@@ -37,19 +37,37 @@ impl SQLMapper for JoinedRankingView {
 
 #[async_trait]
 impl IRankingRepository for RankingRepository {
-    async fn list_top_points(&self, limit: u64) -> Result<Vec<PointRankingRecord>, ServiceError> {
+    async fn list_top_points(
+        &self,
+        limit: u64,
+    ) -> Result<Vec<PointDiffRankingRecord>, ServiceError> {
         let mut conn = self.pool.get_conn().await?;
         let users = conn
-            .load_with::<UserRecord>(
+            .load_with2::<PointEventRecord, JoinedRankingView>(
                 QueryBuilder::new()
+                    .inner_join(
+                        table_name::<UserRecord>(),
+                        (
+                            accessor_name!(PointEventRecord::user_id),
+                            accessor_name!(UserRecord::id),
+                        ),
+                    )
                     .order_by(accessor!(UserRecord::point), Ordering::Descending)
-                    .limit(limit as i32),
+                    .limit(limit as i32)
+                    .append_selects(vec![
+                        format!(
+                            "({} - {}) AS diff",
+                            accessor!(PointEventRecord::current),
+                            accessor!(PointEventRecord::previous)
+                        ),
+                        format!("{}.*", table_name::<UserRecord>()),
+                    ]),
             )
             .await?;
 
         Ok(users
             .into_iter()
-            .map(|user| PointRankingRecord::new(user.into_model()))
+            .map(|view| PointDiffRankingRecord::new(view.user.into_model(), view.diff.unwrap_or(0)))
             .collect())
     }
 
@@ -61,7 +79,6 @@ impl IRankingRepository for RankingRepository {
 
         let views = conn
             .load_with2::<PointEventRecord, JoinedRankingView>(
-                // FIXME: accessor macro
                 QueryBuilder::new()
                     .inner_join(
                         table_name::<UserRecord>(),

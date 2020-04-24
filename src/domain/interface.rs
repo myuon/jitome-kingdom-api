@@ -1,7 +1,7 @@
 use crate::base64::Base64;
 use crate::domain::model::{
     GachaEvent, GachaType, Gift, GiftId, GiftStatus, JankenEvent, JankenStatus,
-    PointDiffRankingRecord, PointEvent, PointRankingRecord, User, UserId,
+    PointDiffRankingRecord, PointEvent, User, UserId,
 };
 use crate::unixtime::UnixTime;
 use crate::url::Url;
@@ -92,7 +92,10 @@ pub trait IPointEventRepository {
 
 #[async_trait]
 pub trait IRankingRepository {
-    async fn list_top_points(&self, limit: u64) -> Result<Vec<PointRankingRecord>, ServiceError>;
+    async fn list_top_points(
+        &self,
+        limit: u64,
+    ) -> Result<Vec<PointDiffRankingRecord>, ServiceError>;
     async fn list_top_point_diffs(
         &self,
         limit: u64,
