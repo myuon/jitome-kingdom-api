@@ -222,6 +222,10 @@ pub mod user_repository_mock {
             unimplemented!()
         }
 
+        async fn find_oldest_user(&self) -> Result<UserId, ServiceError> {
+            unimplemented!()
+        }
+
         async fn find_by_id(&self, user_id: &UserId) -> Result<User, ServiceError> {
             Ok(self.item.clone())
         }
@@ -269,6 +273,10 @@ pub mod user_repository_mock {
     impl IUserRepository for UserRepositoryListIdStub {
         async fn list_id(&self) -> Result<Vec<UserId>, ServiceError> {
             Ok(self.ids.clone())
+        }
+
+        async fn find_oldest_user(&self) -> Result<UserId, ServiceError> {
+            unimplemented!()
         }
 
         async fn find_by_id(&self, user_id: &UserId) -> Result<User, ServiceError> {
