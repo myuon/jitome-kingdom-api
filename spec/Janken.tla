@@ -1,9 +1,10 @@
 ------------------------------- MODULE Janken -------------------------------
 EXTENDS Naturals, Sequences, FiniteSets
 
-CONSTANT NumClients, ServerStep
+CONSTANT NumClients, ServerStep, NumWorker
 ASSUME NumClients \in Nat
 ASSUME ServerStep \in Nat
+ASSUME NumWorker \in Nat
 
 clients == 1..NumClients
 
@@ -63,7 +64,7 @@ Operations == [type: {"new"}, data: Hand, client: Nat]
         EventRecordLock := [EventRecordLock EXCEPT ![r1.id] = TRUE, ![r2.id] = TRUE];
     };
     
-    process (server = "server")
+    process (server = 0)
     variable count = 0;
     {
         server:
@@ -76,7 +77,7 @@ Operations == [type: {"new"}, data: Hand, client: Nat]
             };
     };
     
-    process (worker \in {"1"})
+    process (worker \in 1..NumWorker)
     {
         worker:
             while (TRUE) {
@@ -108,9 +109,9 @@ Operations == [type: {"new"}, data: Hand, client: Nat]
     };
 };
 *)
-\* BEGIN TRANSLATION - the hash of the PCal code: PCal-237414c4f398c34c8c6bc99006fc4f17
-\* Label server of process server at line 70 col 13 changed to server_
-\* Label worker of process worker at line 82 col 13 changed to worker_
+\* BEGIN TRANSLATION - the hash of the PCal code: PCal-dd837a185783166ba8c08ddd9fd25646
+\* Label server of process server at line 71 col 13 changed to server_
+\* Label worker of process worker at line 83 col 13 changed to worker_
 VARIABLES Available, History, Queue, EventRecordLock, pc
 
 (* define statement *)
@@ -130,7 +131,7 @@ VARIABLE count
 
 vars == << Available, History, Queue, EventRecordLock, pc, count >>
 
-ProcSet == {"server"} \cup ({"1"})
+ProcSet == {0} \cup (1..NumWorker)
 
 Init == (* Global variables *)
         /\ Available = [r \in clients |-> TRUE]
@@ -139,10 +140,10 @@ Init == (* Global variables *)
         /\ EventRecordLock = <<>>
         (* Process server *)
         /\ count = 0
-        /\ pc = [self \in ProcSet |-> CASE self = "server" -> "server_"
-                                        [] self \in {"1"} -> "worker_"]
+        /\ pc = [self \in ProcSet |-> CASE self = 0 -> "server_"
+                                        [] self \in 1..NumWorker -> "worker_"]
 
-server_ == /\ pc["server"] = "server_"
+server_ == /\ pc[0] = "server_"
            /\ IF count <= ServerStep
                  THEN /\ \E pair \in clients \times {"rock", "paper", "scissors"}:
                            /\ Available[(pair[1])] = TRUE
@@ -151,8 +152,8 @@ server_ == /\ pc["server"] = "server_"
                            /\ EventRecordLock' = Append(EventRecordLock, TRUE)
                            /\ Queue' = Append(Queue, [data |-> (pair[2]), client |-> (pair[1]), id |-> Len(History')])
                       /\ count' = count + 1
-                      /\ pc' = [pc EXCEPT !["server"] = "server_"]
-                 ELSE /\ pc' = [pc EXCEPT !["server"] = "Done"]
+                      /\ pc' = [pc EXCEPT ![0] = "server_"]
+                 ELSE /\ pc' = [pc EXCEPT ![0] = "Done"]
                       /\ UNCHANGED << Available, History, Queue, 
                                       EventRecordLock, count >>
 
@@ -188,11 +189,11 @@ lock_released(self) == /\ pc[self] = "lock_released"
 worker(self) == worker_(self) \/ lock_released(self)
 
 Next == server
-           \/ (\E self \in {"1"}: worker(self))
+           \/ (\E self \in 1..NumWorker: worker(self))
 
 Spec == Init /\ [][Next]_vars
 
-\* END TRANSLATION - the hash of the generated TLA code (remove to silence divergence warnings): TLA-89d075a8e133a75351a8db887dfe06ca
+\* END TRANSLATION - the hash of the generated TLA code (remove to silence divergence warnings): TLA-cd09c3137d6213c5be88dec9c5bd5b14
 
 -----------------------------------------------------------------------------
 
@@ -206,5 +207,5 @@ Safety == []AtMostOneInQueue
 =============================================================================
 
 \* Modification History
-\* Last modified Tue Apr 28 00:28:16 JST 2020 by ioijoi
+\* Last modified Tue Apr 28 00:36:26 JST 2020 by ioijoi
 \* Created Mon Apr 27 16:16:15 JST 2020 by ioijoi
