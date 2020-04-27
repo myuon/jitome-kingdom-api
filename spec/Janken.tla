@@ -12,7 +12,7 @@ Hand == {"rock", "paper", "scissors"}
 Operations == [type: {"new"}, data: Hand, client: Nat]
 
 (*
---fair algorithm janken_process
+--algorithm janken_process
 {
     variables
         (* クライアントの状態, じゃんけんが送信できる状態か否か *)
@@ -159,10 +159,9 @@ worker(self) == worker_(self)
 Next == server
            \/ (\E self \in {"1"}: worker(self))
 
-Spec == /\ Init /\ [][Next]_vars
-        /\ WF_vars(Next)
+Spec == Init /\ [][Next]_vars
 
-\* END TRANSLATION - the hash of the generated TLA code (remove to silence divergence warnings): TLA-8b7dc57774d7563c70c1b111a87969c1
+\* END TRANSLATION - the hash of the generated TLA code (remove to silence divergence warnings): TLA-0b43c33e7d8acfb39c009d2b6ee176f3
 
 -----------------------------------------------------------------------------
 
@@ -173,12 +172,8 @@ AtMostOneInQueue == (\A c \in clients:
 
 Safety == []AtMostOneInQueue
 
-QueueResolved == Len(Queue) <= 1
-
-Liveness == <>[]QueueResolved
-
 =============================================================================
 
 \* Modification History
-\* Last modified Mon Apr 27 22:42:28 JST 2020 by ioijoi
+\* Last modified Mon Apr 27 23:52:07 JST 2020 by ioijoi
 \* Created Mon Apr 27 16:16:15 JST 2020 by ioijoi
