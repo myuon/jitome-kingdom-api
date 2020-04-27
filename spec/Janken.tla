@@ -1,5 +1,5 @@
 ------------------------------- MODULE Janken -------------------------------
-EXTENDS Naturals, Sequences
+EXTENDS Naturals, Sequences, FiniteSets
 
 CONSTANT NumClients
 ASSUME NumClients \in Nat
@@ -133,7 +133,17 @@ Spec == Init /\ [][Next]_vars
 
 \* END TRANSLATION - the hash of the generated TLA code (remove to silence divergence warnings): TLA-891cb3fc5887dc2bd33c71a7b08f4ab3
 
+-----------------------------------------------------------------------------
+
+AtMostOneInQueue == (\A c \in clients:
+    LET IsClientEq(q) == q.client = c IN
+    Len(SelectSeq(Queue, IsClientEq)) <= 1
+)
+
+Soundness == []AtMostOneInQueue
+
 =============================================================================
+
 \* Modification History
-\* Last modified Mon Apr 27 20:15:42 JST 2020 by ioijoi
+\* Last modified Mon Apr 27 20:51:53 JST 2020 by ioijoi
 \* Created Mon Apr 27 16:16:15 JST 2020 by ioijoi
