@@ -204,8 +204,10 @@ AtMostOneInQueue == (\A c \in clients:
 
 Safety == []AtMostOneInQueue
 
+Liveness == <>[](Len(Queue) <= 1)
+
 =============================================================================
 
 \* Modification History
-\* Last modified Tue Apr 28 00:36:26 JST 2020 by ioijoi
+\* Last modified Tue Apr 28 00:45:00 JST 2020 by ioijoi
 \* Created Mon Apr 27 16:16:15 JST 2020 by ioijoi
